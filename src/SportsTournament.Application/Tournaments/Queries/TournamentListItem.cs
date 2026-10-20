@@ -6,4 +6,5 @@ public sealed record TournamentListItem(
     DateOnly StartDate,
     DateOnly EndDate,
     int MaxTeams,
+    int PlayersOnFieldPerTeam,
     string Status);

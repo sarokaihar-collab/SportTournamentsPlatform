@@ -1,4 +1,5 @@
 ﻿using SportsTournament.Domain.Enums;
+using SportsTournament.Domain.Exceptions;
 using SportsTournament.Domain.Tournaments;
 
 namespace SportsTournament.UnitTests.Domain.Tournaments;
@@ -13,7 +14,8 @@ public sealed class TournamentTests
             registrationDeadlineUtc: deadline ?? DateTimeOffset.UtcNow.AddDays(10),
             startDate: startDate ?? new DateOnly(2026, 11, 1),
             endDate: endDate ?? new DateOnly(2026, 11, 30),
-            maxTeams: maxTeams);
+            maxTeams: maxTeams,
+            playersOnFieldPerTeam: 11);
     }
 
     [Fact]
@@ -28,19 +30,91 @@ public sealed class TournamentTests
         Assert.NotEqual(default, tournament.CreatedAtUtc);
     }
 
+    [Fact]
+    public void Constructor_WhenPlayersOnFieldPerTeamIsZero_ThrowsDomainValidationException()
+    {
+        var exception = Assert.Throws<DomainValidationException>(() =>
+            new Tournament(
+                "Test Tournament",
+                Guid.NewGuid(),
+                new DateTimeOffset(
+                    2026, 11, 6, 18, 0, 0, TimeSpan.Zero),
+                new DateOnly(2026, 11, 7),
+                new DateOnly(2026, 11, 8),
+                8,
+                0));
+
+        Assert.Contains("Players on field per team must be greater than zero.", exception.Message);
+    }
+
+    [Fact]
+    public void Constructor_WhenDeadlineIsOnStartDate_ThrowsArgumentException()
+    {
+        var startDate = new DateOnly(2026, 11, 7);
+        var registrationDeadline = new DateTimeOffset(2026, 11, 7, 0, 0, 0, TimeSpan.Zero);
+
+        Assert.Throws<DomainValidationException>(() =>
+            new Tournament(
+                "Test Tournament",
+                Guid.NewGuid(),
+                registrationDeadline,
+                startDate,
+                new DateOnly(2026, 11, 8),
+                8,
+                11));
+    }
+
+    [Fact]
+    public void Constructor_WhenDeadlineIsAfterStartDate_ThrowsArgumentException()
+    {
+        var startDate = new DateOnly(2026, 11, 7);
+        var registrationDeadline = new DateTimeOffset(2026, 11, 8, 10, 0, 0, TimeSpan.Zero);
+
+        Assert.Throws<DomainValidationException>(() =>
+            new Tournament(
+                "Test Tournament",
+                Guid.NewGuid(),
+                registrationDeadline,
+                startDate,
+                new DateOnly(2026, 11, 9),
+                8,
+                11));
+    }
+
+    [Fact]
+    public void Constructor_WhenLocalDeadlineDateEqualsStartDateButUtcDateIsPreviousDay_DoesNotThrow()
+    {
+        var startDate = new DateOnly(2026, 11, 7);
+
+        // 7 ноября, 02:00 UTC+3 = 6 ноября, 23:00 UTC.
+        var registrationDeadline = new DateTimeOffset(2026, 11, 7, 2, 0, 0, TimeSpan.FromHours(3));
+
+        var tournament = new Tournament(
+            "Test Tournament",
+            Guid.NewGuid(),
+            registrationDeadline,
+            startDate,
+            new DateOnly(2026, 11, 8),
+            8,
+            11);
+
+        Assert.Equal(startDate, tournament.StartDate);
+    }
+
     [Theory]
     [InlineData("")]
     [InlineData("   ")]
     public void Constructor_WithEmptyName_ThrowsArgumentException(string name)
     {
-        Assert.Throws<ArgumentException>(() =>
+        Assert.Throws<DomainValidationException>(() =>
             new Tournament(
                 name,
                 Guid.NewGuid(),
                 DateTimeOffset.UtcNow.AddDays(10),
                 new DateOnly(2026, 11, 1),
                 new DateOnly(2026, 11, 30),
-                8));
+                8,
+                11));
     }
 
     [Fact]
@@ -48,7 +122,7 @@ public sealed class TournamentTests
     {
         var name = new string('A', 101);
 
-        Assert.Throws<ArgumentOutOfRangeException>(() =>  CreateTournamentWithName(name));
+        Assert.Throws<DomainValidationException>(() =>  CreateTournamentWithName(name));
     }
 
     [Fact]
@@ -61,19 +135,20 @@ public sealed class TournamentTests
                 DateTimeOffset.UtcNow.AddDays(10),
                 new DateOnly(2026, 11, 1),
                 new DateOnly(2026, 11, 30),
-                8));
+                8,
+                11));
     }
 
     [Fact]
     public void Constructor_WithStartDateAfterEndDate_ThrowsException()
     {
-        Assert.Throws<ArgumentException>(() => CreateTournament(startDate: new DateOnly(2026, 11, 30), endDate: new DateOnly(2026, 11, 1)));
+        Assert.Throws<DomainValidationException>(() => CreateTournament(startDate: new DateOnly(2026, 11, 30), endDate: new DateOnly(2026, 11, 1)));
     }
 
     [Fact]
     public void Constructor_WithLessThanThreeTeams_ThrowsException()
     {
-        Assert.Throws<ArgumentOutOfRangeException>(() => CreateTournament(maxTeams: 2));
+        Assert.Throws<DomainOperationNotAllowedException>(() => CreateTournament(maxTeams: 2));
     }
 
     [Fact]
@@ -93,7 +168,7 @@ public sealed class TournamentTests
         var now = DateTimeOffset.UtcNow;
         var tournament = CreateTournament(deadline: now);
 
-        Assert.Throws<InvalidOperationException>(() => tournament.OpenRegistration(now));
+        Assert.Throws<DomainOperationNotAllowedException>(() => tournament.OpenRegistration(now));
 
         Assert.Equal(TournamentStatus.Draft, tournament.Status);
     }
@@ -114,7 +189,7 @@ public sealed class TournamentTests
     {
         var tournament = CreateTournament();
 
-        Assert.Throws<InvalidOperationException>(tournament.Start);
+        Assert.Throws<DomainOperationNotAllowedException>(tournament.Start);
 
         Assert.Equal(TournamentStatus.Draft, tournament.Status);
     }
@@ -140,7 +215,7 @@ public sealed class TournamentTests
         tournament.CloseRegistration();
         tournament.Start();
 
-        Assert.Throws<InvalidOperationException>(tournament.Cancel);
+        Assert.Throws<DomainOperationNotAllowedException>(tournament.Cancel);
 
         Assert.Equal(TournamentStatus.InProgress, tournament.Status);
     }
@@ -174,6 +249,7 @@ public sealed class TournamentTests
             DateTimeOffset.UtcNow.AddDays(10),
             new DateOnly(2026, 11, 1),
             new DateOnly(2026, 11, 30),
-            8);
+            8,
+            11);
     }
 }

@@ -1,4 +1,6 @@
-﻿namespace SportsTournament.Domain.Teams;
+﻿using SportsTournament.Domain.Exceptions;
+
+namespace SportsTournament.Domain.Teams;
 
 public sealed class Team
 {
@@ -26,14 +28,14 @@ public sealed class Team
     {
         if (string.IsNullOrWhiteSpace(name))
         {
-            throw new ArgumentException("Team name cannot be empty.", nameof(name));
+            throw new DomainValidationException("Team name cannot be empty.", nameof(name));
         }
 
         var normalizedName = name.Trim();
 
         if (normalizedName.Length > MaxNameLength)
         {
-            throw new ArgumentOutOfRangeException(nameof(name), $"Team name cannot exceed {MaxNameLength} characters.");
+            throw new DomainValidationException($"Team name cannot exceed {MaxNameLength} characters.", nameof(name));
         }
 
         Name = normalizedName;

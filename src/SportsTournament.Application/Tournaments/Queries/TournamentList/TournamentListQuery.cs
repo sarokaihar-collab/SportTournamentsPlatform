@@ -14,6 +14,7 @@ public sealed class TournamentListQuery(ITournamentRepository tournamentReposito
                 tournament.StartDate,
                 tournament.EndDate,
                 tournament.MaxTeams,
+                tournament.PlayersOnFieldPerTeam,
                 tournament.Status.ToString()))
             .ToList();
     }

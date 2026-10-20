@@ -28,5 +28,8 @@ public sealed class TournamentConfiguration : IEntityTypeConfiguration<Tournamen
         builder.Property(tournament => tournament.MaxTeams).HasColumnName("max_teams").IsRequired();
         builder.Property(tournament => tournament.Status).HasColumnName("status").HasColumnType("integer").IsRequired();
         builder.Property(tournament => tournament.CreatedAtUtc).HasColumnName("created_at_utc").HasColumnType("timestamp with time zone").IsRequired();
+        builder.Property(tournament => tournament.PlayersOnFieldPerTeam).HasColumnName("players_on_field_per_team").IsRequired();
+
+        builder.Property<uint>("Version").IsRowVersion();
     }
 }

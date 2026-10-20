@@ -1,4 +1,6 @@
-﻿namespace SportsTournament.Domain.Teams;
+﻿using SportsTournament.Domain.Exceptions;
+
+namespace SportsTournament.Domain.Teams;
 
 public sealed class TeamManagerAssignment
 {
@@ -11,12 +13,12 @@ public sealed class TeamManagerAssignment
     {
         if (teamId == Guid.Empty)
         {
-            throw new ArgumentException("Team ID cannot be empty.", nameof(teamId));
+            throw new DomainValidationException("Team ID cannot be empty.", nameof(teamId));
         }
 
         if (managerId == Guid.Empty)
         {
-            throw new ArgumentException("Manager ID cannot be empty.", nameof(managerId));
+            throw new DomainValidationException("Manager ID cannot be empty.", nameof(managerId));
         }
 
         Id = Guid.NewGuid();

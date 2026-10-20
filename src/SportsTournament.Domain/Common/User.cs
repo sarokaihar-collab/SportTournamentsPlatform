@@ -1,4 +1,6 @@
-﻿namespace SportsTournament.Domain.Common;
+﻿using SportsTournament.Domain.Exceptions;
+
+namespace SportsTournament.Domain.Common;
 
 public sealed class User
 {
@@ -31,14 +33,14 @@ public sealed class User
     {
         if (string.IsNullOrWhiteSpace(displayName))
         {
-            throw new ArgumentException("Display name cannot be empty.", nameof(displayName));
+            throw new DomainValidationException("Display name cannot be empty.", nameof(displayName));
         }
 
         var normalizedName = displayName.Trim();
 
         if (normalizedName.Length > MaxDisplayNameLength)
         {
-            throw new ArgumentOutOfRangeException(nameof(displayName), $"Display name cannot exceed {MaxDisplayNameLength} characters.");
+            throw new DomainValidationException($"Display name cannot exceed {MaxDisplayNameLength} characters.", nameof(displayName));
         }
 
         return normalizedName;

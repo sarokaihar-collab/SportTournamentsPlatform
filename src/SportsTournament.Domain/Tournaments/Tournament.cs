@@ -1,4 +1,5 @@
 ﻿using SportsTournament.Domain.Enums;
+using SportsTournament.Domain.Exceptions;
 
 namespace SportsTournament.Domain.Tournaments;
 
@@ -12,7 +13,8 @@ public sealed class Tournament
     {
     }
 
-    public Tournament(string name, Guid organizerId, DateTimeOffset registrationDeadlineUtc, DateOnly startDate, DateOnly endDate, int maxTeams)
+    public Tournament(string name, Guid organizerId, DateTimeOffset registrationDeadlineUtc, DateOnly startDate,
+                      DateOnly endDate, int maxTeams, int playersOnFieldPerTeam)
     {
         Id = Guid.NewGuid();
         Name = ValidateName(name);
@@ -34,7 +36,18 @@ public sealed class Tournament
 
         if (startDate > endDate)
         {
-            throw new ArgumentException("Tournament start date cannot be after end date.");
+            throw new DomainValidationException("Tournament start date cannot be after end date.", nameof(startDate));
+        }
+
+        if (DateOnly.FromDateTime(registrationDeadlineUtc.UtcDateTime) >= startDate)
+        {
+            throw new DomainValidationException("Registration deadline must be before the tournament start date in UTC.",
+                nameof(registrationDeadlineUtc));
+        }
+
+        if (playersOnFieldPerTeam <= 0)
+        {
+            throw new DomainValidationException("Players on field per team must be greater than zero.", nameof(playersOnFieldPerTeam));
         }
 
         ValidateMaxTeams(maxTeams);
@@ -45,6 +58,7 @@ public sealed class Tournament
         StartDate = startDate;
         EndDate = endDate;
         MaxTeams = maxTeams;
+        PlayersOnFieldPerTeam = playersOnFieldPerTeam;
 
         Status = TournamentStatus.Draft;
         CreatedAtUtc = DateTimeOffset.UtcNow;
@@ -67,6 +81,8 @@ public sealed class Tournament
     public TournamentStatus Status { get; private set; }
 
     public DateTimeOffset CreatedAtUtc { get; private set; }
+
+    public int PlayersOnFieldPerTeam { get; private set; }
 
     public void Rename(string name)
     {
@@ -102,7 +118,7 @@ public sealed class Tournament
 
         if (RegistrationDeadlineUtc <= now.ToUniversalTime())
         {
-            throw new InvalidOperationException("Registration deadline must be in the future.");
+            throw new DomainOperationNotAllowedException("Registration deadline must be in the future.");
         }
 
         Status = TournamentStatus.RegistrationOpen;
@@ -133,7 +149,7 @@ public sealed class Tournament
     {
         if (Status is TournamentStatus.InProgress or TournamentStatus.Completed or TournamentStatus.Cancelled)
         {
-            throw new InvalidOperationException("Tournament cannot be cancelled in its current state.");
+            throw new DomainOperationNotAllowedException("Tournament cannot be cancelled in its current state.");
         }
 
         Status = TournamentStatus.Cancelled;
@@ -143,7 +159,7 @@ public sealed class Tournament
     {
         if (Status != expectedStatus)
         {
-            throw new InvalidOperationException($"Operation is not allowed when tournament status is {Status}.");
+            throw new DomainOperationNotAllowedException($"Operation is not allowed when tournament status is {Status}.");
         }
     }
 
@@ -159,14 +175,14 @@ public sealed class Tournament
     {
         if (string.IsNullOrWhiteSpace(name))
         {
-            throw new ArgumentException("Tournament name cannot be empty.", nameof(name));
+            throw new DomainValidationException("Tournament name cannot be empty.", nameof(name));
         }
 
         var normalizedName = name.Trim();
 
         if (normalizedName.Length > MaxNameLength)
         {
-            throw new ArgumentOutOfRangeException(nameof(name), $"Tournament name cannot exceed {MaxNameLength} characters.");
+            throw new DomainValidationException($"Tournament name cannot exceed {MaxNameLength} characters.", nameof(name));
         }
 
         return normalizedName;
@@ -176,7 +192,7 @@ public sealed class Tournament
     {
         if (maxTeams < MinTeams)
         {
-            throw new ArgumentOutOfRangeException(nameof(maxTeams), $"Tournament must allow at least {MinTeams} teams.");
+            throw new DomainOperationNotAllowedException($"Tournament must allow at least {MinTeams} teams.");
         }
     }
 }

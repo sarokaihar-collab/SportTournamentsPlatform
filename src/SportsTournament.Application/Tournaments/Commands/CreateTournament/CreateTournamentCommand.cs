@@ -1,4 +1,4 @@
-﻿namespace SportsTournament.Application.Tournaments.Commands;
+﻿namespace SportsTournament.Application.Tournaments.Commands.CreateTournament;
 
 public sealed record CreateTournamentCommand(
     string Name,
@@ -6,4 +6,5 @@ public sealed record CreateTournamentCommand(
     DateTimeOffset RegistrationDeadline,
     DateOnly StartDate,
     DateOnly EndDate,
-    int MaxTeams);
+    int MaxTeams,
+    int PlayersOnFieldPerTeam);

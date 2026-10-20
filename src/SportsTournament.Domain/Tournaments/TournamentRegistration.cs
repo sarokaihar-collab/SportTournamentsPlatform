@@ -1,4 +1,5 @@
 ﻿using SportsTournament.Domain.Enums;
+using SportsTournament.Domain.Exceptions;
 
 namespace SportsTournament.Domain;
 
@@ -13,17 +14,17 @@ public sealed class TournamentRegistration
     {
         if (tournamentId == Guid.Empty)
         {
-            throw new ArgumentException("Tournament ID cannot be empty.", nameof(tournamentId));
+            throw new DomainValidationException("Tournament ID cannot be empty.", nameof(tournamentId));
         }
 
         if (teamId == Guid.Empty)
         {
-            throw new ArgumentException("Team ID cannot be empty.", nameof(teamId));
+            throw new DomainValidationException("Team ID cannot be empty.", nameof(teamId));
         }
 
         if (initialStatus is not (RegistrationStatus.Confirmed or RegistrationStatus.Waitlisted))
         {
-            throw new ArgumentOutOfRangeException(nameof(initialStatus), "A new registration must be Confirmed or Waitlisted.");
+            throw new DomainValidationException("A new registration must be Confirmed or Waitlisted.", nameof(initialStatus));
         }
 
         Id = Guid.NewGuid();
@@ -47,7 +48,7 @@ public sealed class TournamentRegistration
     {
         if (Status != RegistrationStatus.Waitlisted)
         {
-            throw new InvalidOperationException("Only a waitlisted registration can be confirmed.");
+            throw new DomainOperationNotAllowedException("Only a waitlisted registration can be confirmed.");
         }
 
         Status = RegistrationStatus.Confirmed;
@@ -57,7 +58,7 @@ public sealed class TournamentRegistration
     {
         if (Status == RegistrationStatus.Cancelled)
         {
-            throw new InvalidOperationException("Registration is already cancelled.");
+            throw new DomainOperationNotAllowedException("Registration is already cancelled.");
         }
 
         Status = RegistrationStatus.Cancelled;
@@ -67,17 +68,17 @@ public sealed class TournamentRegistration
     {
         if (Status != RegistrationStatus.Cancelled)
         {
-            throw new InvalidOperationException("Only a cancelled registration can be reactivated.");
+            throw new DomainOperationNotAllowedException("Only a cancelled registration can be reactivated.");
         }
 
-        if (newStatus != RegistrationStatus.Confirmed && newStatus != RegistrationStatus.Waitlisted)
+        if (newStatus is not (RegistrationStatus.Confirmed or RegistrationStatus.Waitlisted))
         {
-            throw new ArgumentOutOfRangeException(nameof(newStatus), "A re-registration must be Confirmed or Waitlisted.");
+            throw new DomainValidationException("A re-registration must be Confirmed or Waitlisted.", nameof(newStatus));
         }
 
         if (registeredAtUtc == default)
         {
-            throw new ArgumentException("Registration time must be provided.", nameof(registeredAtUtc));
+            throw new DomainValidationException("Registration time must be provided.", nameof(registeredAtUtc));
         }
 
         Status = newStatus;

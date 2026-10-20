@@ -1,7 +1,8 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using SportsTournament.Api.Contracts.Tournaments;
 using SportsTournament.Application.Common;
-using SportsTournament.Application.Tournaments.Commands;
+using SportsTournament.Application.Tournaments.Commands.CreateTournament;
+using SportsTournament.Application.Tournaments.Commands.OpenTournamentRegistration;
 using SportsTournament.Application.Tournaments.Queries;
 
 namespace SportsTournament.Api.Controllers;
@@ -12,7 +13,9 @@ public sealed class TournamentsController(
     ITournamentListQuery tournamentListQuery,
     ICreateTournamentHandler createTournamentHandler,
     ICurrentUserService currentUserService,
-    ITournamentDetailsQuery tournamentDetailsQuery) : ControllerBase
+    ITournamentDetailsQuery tournamentDetailsQuery,
+    IOpenTournamentRegistrationHandler openTournamentRegistrationHandler) : ControllerBase
+
 {
     [HttpPost]
     [ProducesResponseType(StatusCodes.Status201Created)]
@@ -21,10 +24,11 @@ public sealed class TournamentsController(
         var command = new CreateTournamentCommand(
             request.Name,
             currentUserService.GetUser(),
-            request.RegistrationDeadline,
-            request.StartDate,
-            request.EndDate,
-            request.MaxTeams);
+            request.RegistrationDeadline!.Value,
+            request.StartDate!.Value,
+            request.EndDate!.Value,
+            request.MaxTeams,
+            request.PlayersOnFieldPerTeam);
 
         var tournamentId = await createTournamentHandler.HandleAsync(command, cancellationToken);
 
@@ -53,5 +57,21 @@ public sealed class TournamentsController(
         }
 
         return Ok(tournament);
+    }
+
+    [HttpPost("{id:guid}/registration/open")]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status409Conflict)]
+    public async Task<IActionResult> OpenRegistration(Guid id, CancellationToken cancellationToken)
+    {
+        var opened = await openTournamentRegistrationHandler.HandleAsync(new OpenTournamentRegistrationCommand(id), cancellationToken);
+
+        if (!opened)
+        {
+            return NotFound();
+        }
+
+        return NoContent();
     }
 }

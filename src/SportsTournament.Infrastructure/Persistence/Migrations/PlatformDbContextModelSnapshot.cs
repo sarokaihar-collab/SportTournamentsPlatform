@@ -153,6 +153,10 @@ namespace SportsTournament.Infrastructure.Persistence.Migrations
                         .HasColumnType("uuid")
                         .HasColumnName("organizer_id");
 
+                    b.Property<int>("PlayersOnFieldPerTeam")
+                        .HasColumnType("integer")
+                        .HasColumnName("players_on_field_per_team");
+
                     b.Property<DateTimeOffset>("RegistrationDeadlineUtc")
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("registration_deadline_utc");
@@ -164,6 +168,12 @@ namespace SportsTournament.Infrastructure.Persistence.Migrations
                     b.Property<int>("Status")
                         .HasColumnType("integer")
                         .HasColumnName("status");
+
+                    b.Property<uint>("Version")
+                        .IsConcurrencyToken()
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("xid")
+                        .HasColumnName("xmin");
 
                     b.HasKey("Id");
 

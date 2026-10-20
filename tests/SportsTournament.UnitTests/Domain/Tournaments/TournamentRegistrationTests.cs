@@ -1,5 +1,6 @@
 ﻿using SportsTournament.Domain;
 using SportsTournament.Domain.Enums;
+using SportsTournament.Domain.Exceptions;
 
 namespace SportsTournament.UnitTests.Domain.Tournaments;
 
@@ -26,19 +27,19 @@ public sealed class TournamentRegistrationTests
     [Fact]
     public void Constructor_WithEmptyTournamentId_ThrowsException()
     {
-        Assert.Throws<ArgumentException>(() => new TournamentRegistration(Guid.Empty, Guid.NewGuid(), RegistrationStatus.Confirmed));
+        Assert.Throws<DomainValidationException>(() => new TournamentRegistration(Guid.Empty, Guid.NewGuid(), RegistrationStatus.Confirmed));
     }
 
     [Fact]
     public void Constructor_WithEmptyTeamId_ThrowsException()
     {
-        Assert.Throws<ArgumentException>(() => new TournamentRegistration(Guid.NewGuid(), Guid.Empty, RegistrationStatus.Confirmed));
+        Assert.Throws<DomainValidationException>(() => new TournamentRegistration(Guid.NewGuid(), Guid.Empty, RegistrationStatus.Confirmed));
     }
 
     [Fact]
     public void Constructor_WithCancelledStatus_ThrowsException()
     {
-        Assert.Throws<ArgumentOutOfRangeException>(() => new TournamentRegistration(Guid.NewGuid(), Guid.NewGuid(), RegistrationStatus.Cancelled));
+        Assert.Throws<DomainValidationException>(() => new TournamentRegistration(Guid.NewGuid(), Guid.NewGuid(), RegistrationStatus.Cancelled));
     }
 
     [Fact]
@@ -56,7 +57,7 @@ public sealed class TournamentRegistrationTests
     {
         var registration = CreateRegistration(RegistrationStatus.Confirmed);
 
-        Assert.Throws<InvalidOperationException>(registration.ConfirmFromWaitlist);
+        Assert.Throws<DomainOperationNotAllowedException>(registration.ConfirmFromWaitlist);
         Assert.Equal(RegistrationStatus.Confirmed, registration.Status);
     }
 
@@ -79,7 +80,7 @@ public sealed class TournamentRegistrationTests
 
         registration.Cancel();
 
-        Assert.Throws<InvalidOperationException>(registration.Cancel);
+        Assert.Throws<DomainOperationNotAllowedException>(registration.Cancel);
         Assert.Equal(RegistrationStatus.Cancelled, registration.Status);
     }
 
@@ -105,7 +106,7 @@ public sealed class TournamentRegistrationTests
     {
         var registration = new TournamentRegistration(Guid.NewGuid(), Guid.NewGuid(), RegistrationStatus.Confirmed);
 
-        Assert.Throws<InvalidOperationException>(() => registration.ReRegister(RegistrationStatus.Waitlisted, DateTimeOffset.UtcNow));
+        Assert.Throws<DomainOperationNotAllowedException>(() => registration.ReRegister(RegistrationStatus.Waitlisted, DateTimeOffset.UtcNow));
     }
 
     [Fact]
@@ -115,7 +116,7 @@ public sealed class TournamentRegistrationTests
 
         registration.Cancel();
 
-        Assert.Throws<ArgumentOutOfRangeException>(() => registration.ReRegister(RegistrationStatus.Cancelled, DateTimeOffset.UtcNow));
+        Assert.Throws<DomainValidationException>(() => registration.ReRegister(RegistrationStatus.Cancelled, DateTimeOffset.UtcNow));
     }
 
     private static TournamentRegistration CreateRegistration(RegistrationStatus status)

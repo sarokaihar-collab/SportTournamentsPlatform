@@ -1,4 +1,5 @@
-﻿using SportsTournament.Domain.Teams;
+﻿using SportsTournament.Domain.Exceptions;
+using SportsTournament.Domain.Teams;
 
 namespace SportsTournament.UnitTests.Domain.Teams;
 
@@ -25,7 +26,7 @@ public sealed class TeamTests
     public void Constructor_WithEmptyName_ThrowsArgumentException(string name)
     {
         // Act & Assert
-        Assert.Throws<ArgumentException>(() => new Team(name));
+        Assert.Throws<DomainValidationException>(() => new Team(name));
     }
 
     [Fact]
@@ -35,7 +36,7 @@ public sealed class TeamTests
         var name = new string('A', 101);
 
         // Act & Assert
-        Assert.Throws<ArgumentOutOfRangeException>(() => new Team(name));
+        Assert.Throws<DomainValidationException>(() => new Team(name));
     }
 
     [Fact]
@@ -58,6 +59,6 @@ public sealed class TeamTests
         var team = new Team("FC Barcelona");
 
         // Act & Assert
-        Assert.Throws<ArgumentException>(() => team.Rename(" "));
+        Assert.Throws<DomainValidationException>(() => team.Rename(" "));
     }
 }

@@ -24,8 +24,23 @@ public sealed class TournamentRepository(PlatformDbContext dbContext) : ITournam
 
     public async Task<Tournament?> GetByIdAsync(Guid id, CancellationToken cancellationToken)
     {
-        return await dbContext.Tournaments
-            .AsNoTracking()
-            .SingleOrDefaultAsync(tournament => tournament.Id == id, cancellationToken);
+        return await dbContext.Tournaments.AsNoTracking().SingleOrDefaultAsync(tournament => tournament.Id == id, cancellationToken);
+    }
+
+    public async Task<Tournament?> GetByIdForUpdateAsync(Guid id, CancellationToken cancellationToken)
+    {
+        return await dbContext.Tournaments.AsTracking().SingleOrDefaultAsync(tournament => tournament.Id == id, cancellationToken);
+    }
+
+    public async Task UpdateAsync(Tournament tournament, CancellationToken cancellationToken)
+    {
+        var entry = dbContext.Entry(tournament);
+
+        if (entry.State == EntityState.Detached)
+        {
+            throw new InvalidOperationException("Tournament must be loaded through this repository before updating.");
+        }
+
+        await dbContext.SaveChangesAsync(cancellationToken);
     }
 }

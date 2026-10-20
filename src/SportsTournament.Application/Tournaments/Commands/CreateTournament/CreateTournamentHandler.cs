@@ -1,6 +1,6 @@
 ﻿using SportsTournament.Domain.Tournaments;
 
-namespace SportsTournament.Application.Tournaments.Commands
+namespace SportsTournament.Application.Tournaments.Commands.CreateTournament
 {
     public sealed class CreateTournamentHandler(ITournamentRepository tournamentRepository) : ICreateTournamentHandler
     {
@@ -12,7 +12,8 @@ namespace SportsTournament.Application.Tournaments.Commands
                 command.RegistrationDeadline,
                 command.StartDate,
                 command.EndDate,
-                command.MaxTeams);
+                command.MaxTeams,
+                command.PlayersOnFieldPerTeam);
 
             await tournamentRepository.CreateAsync(tournament, cancellationToken);
 

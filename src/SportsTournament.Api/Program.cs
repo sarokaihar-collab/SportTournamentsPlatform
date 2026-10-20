@@ -1,6 +1,6 @@
+using SportsTournament.Api.ExceptionHandling;
+using SportsTournament.Application;
 using SportsTournament.Application.Common;
-using SportsTournament.Application.Tournaments.Commands;
-using SportsTournament.Application.Tournaments.Queries;
 using SportsTournament.Infrastructure;
 using SportsTournament.Infrastructure.Persistence;
 
@@ -8,26 +8,31 @@ var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 builder.Services.AddInfrastructure(builder.Configuration);
-
-builder.Services.AddScoped<ITournamentListQuery, TournamentListQuery>();
-builder.Services.AddScoped<ITournamentDetailsQuery, TournamentDetailsQuery>();
-builder.Services.AddScoped<ICreateTournamentHandler, CreateTournamentHandler>();
+builder.Services.AddApplication();
 
 if (builder.Environment.IsDevelopment())
 {
     builder.Services.AddScoped<ICurrentUserService, DevelopmentCurrentUserService>();
 }
 
-builder.Services.AddControllers();
+builder.Services.AddControllers(options =>
+{
+    options.ValidateComplexTypesIfChildValidationFails = true;
+});
+
 // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
 builder.Services.AddOpenApi();
 
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
-
+builder.Services.AddExceptionHandler<ApiExceptionHandler>();
+builder.Services.AddProblemDetails();
 
 var app = builder.Build();
+
+app.UseExceptionHandler();
+app.UseStatusCodePages();
 
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())

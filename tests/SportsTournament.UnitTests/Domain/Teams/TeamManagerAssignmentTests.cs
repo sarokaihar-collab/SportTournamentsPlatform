@@ -1,4 +1,5 @@
-﻿using SportsTournament.Domain.Teams;
+﻿using SportsTournament.Domain.Exceptions;
+using SportsTournament.Domain.Teams;
 
 namespace SportsTournament.UnitTests.Domain.Teams;
 
@@ -24,12 +25,12 @@ public sealed class TeamManagerAssignmentTests
     [Fact]
     public void Constructor_WithEmptyTeamId_ThrowsArgumentException()
     {
-        Assert.Throws<ArgumentException>(() =>  new TeamManagerAssignment(Guid.Empty, Guid.NewGuid()));
+        Assert.Throws<DomainValidationException>(() =>  new TeamManagerAssignment(Guid.Empty, Guid.NewGuid()));
     }
 
     [Fact]
     public void Constructor_WithEmptyManagerId_ThrowsArgumentException()
     {
-        Assert.Throws<ArgumentException>(() =>  new TeamManagerAssignment(Guid.NewGuid(), Guid.Empty));
+        Assert.Throws<DomainValidationException>(() =>  new TeamManagerAssignment(Guid.NewGuid(), Guid.Empty));
     }
 }

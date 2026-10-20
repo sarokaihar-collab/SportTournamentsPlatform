@@ -1,4 +1,4 @@
-﻿namespace SportsTournament.Application.Tournaments.Queries;
+﻿namespace SportsTournament.Application.Tournaments.Queries.TournamentDetails;
 
 public sealed class TournamentDetailsQuery(ITournamentRepository tournamentRepository) : ITournamentDetailsQuery
 {
@@ -17,6 +17,7 @@ public sealed class TournamentDetailsQuery(ITournamentRepository tournamentRepos
             tournament.StartDate,
             tournament.EndDate,
             tournament.MaxTeams,
+            tournament.PlayersOnFieldPerTeam,
             tournament.Status.ToString());
     }
 }

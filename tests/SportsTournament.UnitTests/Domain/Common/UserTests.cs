@@ -1,4 +1,5 @@
 ﻿using SportsTournament.Domain.Common;
+using SportsTournament.Domain.Exceptions;
 
 namespace SportsTournament.UnitTests.Domain.Common;
 
@@ -20,7 +21,7 @@ public sealed class UserTests
     public void Constructor_WithEmptyDisplayName_ThrowsArgumentException(
         string displayName)
     {
-        Assert.Throws<ArgumentException>(() => new User(displayName));
+        Assert.Throws<DomainValidationException>(() => new User(displayName));
     }
 
     [Fact]
@@ -28,7 +29,7 @@ public sealed class UserTests
     {
         var displayName = new string('A', 101);
 
-        Assert.Throws<ArgumentOutOfRangeException>(() => new User(displayName));
+        Assert.Throws<DomainValidationException>(() => new User(displayName));
     }
 
     [Fact]
@@ -46,6 +47,6 @@ public sealed class UserTests
     {
         var user = new User("Alex Smith");
 
-        Assert.Throws<ArgumentException>(() => user.Rename(" "));
+        Assert.Throws<DomainValidationException>(() => user.Rename(" "));
     }
 }
