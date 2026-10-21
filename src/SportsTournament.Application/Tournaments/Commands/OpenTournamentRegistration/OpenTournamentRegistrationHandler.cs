@@ -1,5 +1,4 @@
-﻿using SportsTournament.Application.Tournaments;
-using SportsTournament.Application.Tournaments.Commands.OpenTournamentRegistration;
+﻿using SportsTournament.Application.Tournaments.Commands.OpenTournamentRegistration;
 
 namespace SportsTournament.Application.Tournaments.Commands;
 

@@ -1,7 +1,9 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using SportsTournament.Application.Common;
 using SportsTournament.Application.Tournaments;
+using SportsTournament.Infrastructure.Caching;
 using SportsTournament.Infrastructure.Persistence;
 using SportsTournament.Infrastructure.Persistence.Tournaments;
 
@@ -14,8 +16,19 @@ public static class DependencyInjection
         var connectionString = configuration.GetConnectionString("DefaultConnection")
             ?? throw new InvalidOperationException("Connection string 'DefaultConnection' is not configured.");
 
+        var redisConnectionString = configuration.GetConnectionString("Redis") 
+            ?? throw new InvalidOperationException("Connection string 'Redis' is not configured.");
+
         services.AddDbContext<PlatformDbContext>(options => options.UseNpgsql(connectionString));
         services.AddScoped<ITournamentRepository, TournamentRepository>();
+
+        services.AddStackExchangeRedisCache(options =>
+        {
+            options.Configuration = redisConnectionString;
+            options.InstanceName = "SportsTournamentPlatform:";
+        });
+
+        services.AddSingleton<ICacheService, RedisCacheService>();
 
         return services;
     }

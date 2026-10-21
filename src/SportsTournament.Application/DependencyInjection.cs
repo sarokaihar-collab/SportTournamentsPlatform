@@ -3,7 +3,6 @@ using SportsTournament.Application.Tournaments.Commands;
 using SportsTournament.Application.Tournaments.Commands.CreateTournament;
 using SportsTournament.Application.Tournaments.Commands.OpenTournamentRegistration;
 using SportsTournament.Application.Tournaments.Queries;
-using SportsTournament.Application.Tournaments.Queries.TournamentDetails;
 
 namespace SportsTournament.Application;
 

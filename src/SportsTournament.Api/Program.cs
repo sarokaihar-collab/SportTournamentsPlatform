@@ -1,3 +1,4 @@
+using SportsTournament.Api.Configuration;
 using SportsTournament.Api.ExceptionHandling;
 using SportsTournament.Application;
 using SportsTournament.Application.Common;
@@ -7,8 +8,9 @@ using SportsTournament.Infrastructure.Persistence;
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
-builder.Services.AddInfrastructure(builder.Configuration);
 builder.Services.AddApplication();
+builder.Services.AddInfrastructure(builder.Configuration);
+builder.Services.AddApplicationSettings(builder.Configuration);
 
 if (builder.Environment.IsDevelopment())
 {
