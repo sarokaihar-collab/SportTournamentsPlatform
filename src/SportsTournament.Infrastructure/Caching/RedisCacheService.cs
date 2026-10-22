@@ -8,6 +8,10 @@ namespace SportsTournament.Infrastructure.Caching;
 
 public sealed class RedisCacheService(IDistributedCache distributedCache, ILogger<RedisCacheService> logger) : ICacheService
 {
+    private const int MaxRemoveAttempts = 3;
+
+    private static readonly TimeSpan InitialRetryDelay =  TimeSpan.FromMilliseconds(100);
+
     private static readonly JsonSerializerOptions JsonOptions = new(JsonSerializerDefaults.Web);
 
     public async Task<T?> GetAsync<T>(string key, CancellationToken cancellationToken = default) where T : class
@@ -64,13 +68,39 @@ public sealed class RedisCacheService(IDistributedCache distributedCache, ILogge
 
     public async Task RemoveAsync(string key, CancellationToken cancellationToken = default)
     {
-        try
+        for (var attempt = 1; attempt <= MaxRemoveAttempts; attempt++)
         {
-            await distributedCache.RemoveAsync(key, cancellationToken);
-        }
-        catch (RedisException exception)
-        {
-            logger.LogWarning(exception, "Redis removal failed for cache key {CacheKey}.", key);
+            cancellationToken.ThrowIfCancellationRequested();
+
+            try
+            {
+                await distributedCache.RemoveAsync(key, cancellationToken);
+
+                return;
+            }
+            catch (RedisException exception) when (attempt < MaxRemoveAttempts)
+            {
+                var delay = TimeSpan.FromMilliseconds(InitialRetryDelay.TotalMilliseconds * Math.Pow(2, attempt - 1));
+
+                logger.LogWarning(
+                    exception,
+                    "Redis removal failed for cache key {CacheKey} " + "on attempt {Attempt}/{MaxAttempts}. Retrying after {DelayMs} ms.",
+                    key,
+                    attempt,
+                    MaxRemoveAttempts,
+                    delay.TotalMilliseconds);
+
+                await Task.Delay(delay, cancellationToken);
+            }
+            catch (RedisException exception)
+            {
+                logger.LogError(exception, 
+                    "Redis removal failed for cache key {CacheKey} " + "after {MaxAttempts} attempts.",
+                    key,
+                    MaxRemoveAttempts);
+
+                return;
+            }
         }
     }
 }

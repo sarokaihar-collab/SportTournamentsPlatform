@@ -2,9 +2,11 @@
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using SportsTournament.Application.Common;
+using SportsTournament.Application.Common.Outbox;
 using SportsTournament.Application.Tournaments;
 using SportsTournament.Infrastructure.Caching;
 using SportsTournament.Infrastructure.Persistence;
+using SportsTournament.Infrastructure.Persistence.Outbox;
 using SportsTournament.Infrastructure.Persistence.Tournaments;
 
 namespace SportsTournament.Infrastructure;
@@ -19,8 +21,13 @@ public static class DependencyInjection
         var redisConnectionString = configuration.GetConnectionString("Redis") 
             ?? throw new InvalidOperationException("Connection string 'Redis' is not configured.");
 
+
         services.AddDbContext<PlatformDbContext>(options => options.UseNpgsql(connectionString));
+
         services.AddScoped<ITournamentRepository, TournamentRepository>();
+        services.AddScoped<IOutboxMessageWriter, OutboxMessageWriter>();
+
+        services.AddScoped<IUnitOfWork>(serviceProvider => serviceProvider.GetRequiredService<PlatformDbContext>());
 
         services.AddStackExchangeRedisCache(options =>
         {

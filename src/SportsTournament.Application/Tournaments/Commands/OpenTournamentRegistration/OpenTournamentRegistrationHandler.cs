@@ -1,8 +1,10 @@
-﻿using SportsTournament.Application.Tournaments.Commands.OpenTournamentRegistration;
+﻿using SportsTournament.Application.Common;
+using SportsTournament.Application.Common.Outbox;
+using SportsTournament.Application.Tournaments;
+using SportsTournament.Application.Tournaments.Commands.OpenTournamentRegistration;
 
-namespace SportsTournament.Application.Tournaments.Commands;
-
-public sealed class OpenTournamentRegistrationHandler(ITournamentRepository tournamentRepository) : IOpenTournamentRegistrationHandler
+public sealed class OpenTournamentRegistrationHandler(ITournamentRepository tournamentRepository,
+    ICacheService cacheService, IOutboxMessageWriter outboxMessageWriter, IUnitOfWork unitOfWork) : IOpenTournamentRegistrationHandler
 {
     public async Task<bool> HandleAsync(OpenTournamentRegistrationCommand command, CancellationToken cancellationToken)
     {
@@ -15,7 +17,13 @@ public sealed class OpenTournamentRegistrationHandler(ITournamentRepository tour
 
         tournament.OpenRegistration(DateTimeOffset.UtcNow);
 
-        await tournamentRepository.UpdateAsync(tournament, cancellationToken);
+        outboxMessageWriter.Enqueue(OutboxMessageTypes.TournamentCacheInvalidationRequested,
+            new TournamentCacheInvalidationRequested(InvalidateTournamentList: true, TournamentId: tournament.Id));
+
+        await unitOfWork.SaveChangesAsync(cancellationToken);
+
+        await cacheService.RemoveAsync(TournamentCacheKeys.List, cancellationToken);
+        await cacheService.RemoveAsync(TournamentCacheKeys.Details(tournament.Id), cancellationToken);
 
         return true;
     }

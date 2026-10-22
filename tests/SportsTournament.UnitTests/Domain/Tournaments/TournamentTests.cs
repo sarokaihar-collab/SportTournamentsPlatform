@@ -12,8 +12,8 @@ public sealed class TournamentTests
             name: "  Summer Cup  ",
             organizerId: Guid.NewGuid(),
             registrationDeadlineUtc: deadline ?? DateTimeOffset.UtcNow.AddDays(10),
-            startDate: startDate ?? new DateOnly(2026, 11, 1),
-            endDate: endDate ?? new DateOnly(2026, 11, 30),
+            startDate: startDate ?? new DateOnly(2027, 11, 1),
+            endDate: endDate ?? new DateOnly(2027, 11, 30),
             maxTeams: maxTeams,
             playersOnFieldPerTeam: 11);
     }

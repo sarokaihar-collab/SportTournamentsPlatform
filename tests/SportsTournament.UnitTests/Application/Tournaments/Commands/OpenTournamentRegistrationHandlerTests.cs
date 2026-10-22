@@ -1,9 +1,9 @@
 ﻿using SportsTournament.Application.Tournaments;
-using SportsTournament.Application.Tournaments.Commands;
 using SportsTournament.Application.Tournaments.Commands.OpenTournamentRegistration;
 using SportsTournament.Domain.Enums;
 using SportsTournament.Domain.Exceptions;
 using SportsTournament.Domain.Tournaments;
+using SportsTournament.UnitTests.Common.Fakes;
 
 namespace SportsTournament.UnitTests.Application.Tournaments.Commands;
 
@@ -17,29 +17,34 @@ public sealed class OpenTournamentRegistrationHandlerTests
         {
             Tournament = tournament
         };
-        var handler = new OpenTournamentRegistrationHandler(repository);
+        var cacheService = new FakeCacheService();
 
-        var result = await handler.HandleAsync(
-            new OpenTournamentRegistrationCommand(tournament.Id),
-            CancellationToken.None);
+        var handler = new OpenTournamentRegistrationHandler( repository, cacheService, new FakeOutboxMessageWriter(), new FakeUnitOfWork());
+
+        var result = await handler.HandleAsync(new OpenTournamentRegistrationCommand(tournament.Id), CancellationToken.None);
 
         Assert.True(result);
         Assert.Equal(TournamentStatus.RegistrationOpen, tournament.Status);
         Assert.True(repository.UpdateCalled);
+
+        Assert.Equal(2, cacheService.RemovedKeys.Count);
+        Assert.Contains(TournamentCacheKeys.List, cacheService.RemovedKeys);
+        Assert.Contains(TournamentCacheKeys.Details(tournament.Id), cacheService.RemovedKeys);
     }
 
     [Fact]
     public async Task HandleAsync_WhenTournamentDoesNotExist_ReturnsFalse()
     {
         var repository = new FakeTournamentRepository();
-        var handler = new OpenTournamentRegistrationHandler(repository);
+        var cacheService = new FakeCacheService();
 
-        var result = await handler.HandleAsync(
-            new OpenTournamentRegistrationCommand(Guid.NewGuid()),
-            CancellationToken.None);
+        var handler = new OpenTournamentRegistrationHandler(repository, cacheService, new FakeOutboxMessageWriter(), new FakeUnitOfWork());
+
+        var result = await handler.HandleAsync(new OpenTournamentRegistrationCommand(Guid.NewGuid()), CancellationToken.None);
 
         Assert.False(result);
         Assert.False(repository.UpdateCalled);
+        Assert.Empty(cacheService.RemovedKeys);
     }
 
     [Fact]
@@ -52,14 +57,16 @@ public sealed class OpenTournamentRegistrationHandlerTests
         {
             Tournament = tournament
         };
-        var handler = new OpenTournamentRegistrationHandler(repository);
+
+        var cacheService = new FakeCacheService();
+
+        var handler = new OpenTournamentRegistrationHandler(repository, cacheService, new FakeOutboxMessageWriter(), new FakeUnitOfWork());
 
         await Assert.ThrowsAsync<DomainOperationNotAllowedException>(
-            () => handler.HandleAsync(
-                new OpenTournamentRegistrationCommand(tournament.Id),
-                CancellationToken.None));
+            () => handler.HandleAsync(new OpenTournamentRegistrationCommand(tournament.Id), CancellationToken.None));
 
         Assert.False(repository.UpdateCalled);
+        Assert.Empty(cacheService.RemovedKeys);
     }
 
     private static Tournament CreateTournament()
@@ -80,48 +87,26 @@ public sealed class OpenTournamentRegistrationHandlerTests
 
         public bool UpdateCalled { get; private set; }
 
-        public Task<IReadOnlyList<Tournament>> GetAllAsync(
-            CancellationToken cancellationToken)
+        public Task<IReadOnlyList<Tournament>> GetAllAsync(CancellationToken cancellationToken)
         {
-            IReadOnlyList<Tournament> tournaments =
-                Tournament is null
-                    ? Array.Empty<Tournament>()
-                    : new[] { Tournament };
+            IReadOnlyList<Tournament> tournaments = Tournament is null ? Array.Empty<Tournament>() : new[] { Tournament };
 
             return Task.FromResult(tournaments);
         }
 
-        public Task<Tournament?> GetByIdAsync(
-            Guid id,
-            CancellationToken cancellationToken)
+        public Task<Tournament?> GetByIdAsync(Guid id, CancellationToken cancellationToken)
         {
-            return Task.FromResult(
-                Tournament?.Id == id ? Tournament : null);
+            return Task.FromResult(Tournament?.Id == id ? Tournament : null);
         }
 
-        public Task<Tournament?> GetByIdForUpdateAsync(
-            Guid id,
-            CancellationToken cancellationToken)
+        public Task<Tournament?> GetByIdForUpdateAsync(Guid id, CancellationToken cancellationToken)
         {
-            return Task.FromResult(
-                Tournament?.Id == id ? Tournament : null);
+            return Task.FromResult(Tournament?.Id == id ? Tournament : null);
         }
 
-        public Task CreateAsync(
-            Tournament tournament,
-            CancellationToken cancellationToken)
+        public void Add(Tournament tournament)
         {
             Tournament = tournament;
-            return Task.CompletedTask;
-        }
-
-        public Task UpdateAsync(
-            Tournament tournament,
-            CancellationToken cancellationToken)
-        {
-            UpdateCalled = true;
-            Tournament = tournament;
-            return Task.CompletedTask;
         }
     }
 }

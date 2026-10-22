@@ -8,9 +8,7 @@ public interface ITournamentRepository
 
     Task<IReadOnlyList<Tournament>> GetAllAsync(CancellationToken cancellationToken);
 
-    Task CreateAsync(Tournament tournament, CancellationToken cancellationToken);
+    void Add(Tournament tournament);
 
     Task<Tournament?> GetByIdForUpdateAsync(Guid id, CancellationToken cancellationToken);
-
-    Task UpdateAsync(Tournament tournament, CancellationToken cancellationToken);
 }

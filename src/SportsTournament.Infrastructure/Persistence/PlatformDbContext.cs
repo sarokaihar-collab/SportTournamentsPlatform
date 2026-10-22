@@ -1,12 +1,14 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using SportsTournament.Application.Common;
 using SportsTournament.Domain;
 using SportsTournament.Domain.Common;
 using SportsTournament.Domain.Teams;
 using SportsTournament.Domain.Tournaments;
+using SportsTournament.Infrastructure.Persistence.Outbox;
 
 namespace SportsTournament.Infrastructure.Persistence;
 
-public sealed class PlatformDbContext : DbContext
+public sealed class PlatformDbContext : DbContext, IUnitOfWork
 {
     public PlatformDbContext(DbContextOptions<PlatformDbContext> options)
         : base(options)
@@ -23,6 +25,8 @@ public sealed class PlatformDbContext : DbContext
     public DbSet<Tournament> Tournaments => Set<Tournament>();
 
     public DbSet<TournamentRegistration> TournamentRegistrations => Set<TournamentRegistration>();
+
+    public DbSet<OutboxMessage> OutboxMessages => Set<OutboxMessage>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {

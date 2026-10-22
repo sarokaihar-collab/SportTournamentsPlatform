@@ -1,12 +1,11 @@
-﻿using SportsTournament.Application.Common;
+﻿using Microsoft.Extensions.Options;
+using SportsTournament.Application.Common;
 using SportsTournament.Application.Tournaments;
 using SportsTournament.Application.Tournaments.Queries;
 
-public sealed class TournamentDetailsQuery(ITournamentRepository tournamentRepository, ICacheService cacheService) 
-    : ITournamentDetailsQuery
+public sealed class TournamentDetailsQuery(ITournamentRepository tournamentRepository, 
+    ICacheService cacheService, IOptions<TournamentCacheSettings> cacheSettings) : ITournamentDetailsQuery
 {
-    private static readonly TimeSpan CacheTtl = TimeSpan.FromMinutes(5);
-
     public async Task<TournamentListItem?> ExecuteAsync(Guid id, CancellationToken cancellationToken)
     {
         var cacheKey = TournamentCacheKeys.Details(id);
@@ -34,7 +33,7 @@ public sealed class TournamentDetailsQuery(ITournamentRepository tournamentRepos
             tournament.PlayersOnFieldPerTeam,
             tournament.Status.ToString());
 
-        await cacheService.SetAsync(cacheKey, result, CacheTtl, cancellationToken);
+        await cacheService.SetAsync(cacheKey, result, cacheSettings.Value.DetailsTtl, cancellationToken);
 
         return result;
     }
