@@ -37,4 +37,21 @@ public sealed class OutboxMessage
     public Guid? LockToken { get; private set; }
 
     public string? LastError { get; private set; }
+
+    public void AcquireLease(Guid lockToken, DateTimeOffset lockedUntilUtc)
+    {
+        if (ProcessedAtUtc is not null)
+        {
+            throw new InvalidOperationException("A processed outbox message cannot be claimed.");
+        }
+
+        if (lockToken == Guid.Empty)
+        {
+            throw new ArgumentException("Lock token cannot be empty.", nameof(lockToken));
+        }
+
+        AttemptCount = checked(AttemptCount + 1);
+        LockToken = lockToken;
+        LockedUntilUtc = lockedUntilUtc;
+    }
 }

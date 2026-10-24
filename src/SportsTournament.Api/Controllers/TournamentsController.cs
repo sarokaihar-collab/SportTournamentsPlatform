@@ -3,6 +3,7 @@ using SportsTournament.Api.Contracts.Tournaments;
 using SportsTournament.Application.Common;
 using SportsTournament.Application.Tournaments.Commands.CreateTournament;
 using SportsTournament.Application.Tournaments.Commands.OpenTournamentRegistration;
+using SportsTournament.Application.Tournaments.Interfaces;
 using SportsTournament.Application.Tournaments.Queries;
 
 namespace SportsTournament.Api.Controllers;

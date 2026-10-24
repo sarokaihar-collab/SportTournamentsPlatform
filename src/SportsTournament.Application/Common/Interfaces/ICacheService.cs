@@ -1,4 +1,4 @@
-﻿namespace SportsTournament.Application.Common;
+﻿namespace SportsTournament.Application.Common.Interfaces;
 
 public interface ICacheService
 {
@@ -6,5 +6,5 @@ public interface ICacheService
 
     Task SetAsync<T>(string key, T value, TimeSpan ttl, CancellationToken cancellationToken = default) where T : class;
 
-    Task RemoveAsync(string key, CancellationToken cancellationToken = default);
+    Task<bool> RemoveAsync(string key, CancellationToken cancellationToken = default);
 }

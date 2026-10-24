@@ -1,9 +1,10 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using SportsTournament.Application.Common;
+using SportsTournament.Application.Common.Interfaces;
 using SportsTournament.Application.Common.Outbox;
-using SportsTournament.Application.Tournaments;
+using SportsTournament.Application.Common.Outbox.Interfaces;
+using SportsTournament.Application.Tournaments.Interfaces;
 using SportsTournament.Infrastructure.Caching;
 using SportsTournament.Infrastructure.Persistence;
 using SportsTournament.Infrastructure.Persistence.Outbox;
@@ -36,6 +37,7 @@ public static class DependencyInjection
         });
 
         services.AddSingleton<ICacheService, RedisCacheService>();
+        services.AddScoped<IOutboxMessageStore, OutboxMessageStore>();
 
         return services;
     }

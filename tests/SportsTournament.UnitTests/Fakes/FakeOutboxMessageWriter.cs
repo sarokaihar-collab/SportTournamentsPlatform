@@ -1,4 +1,4 @@
-﻿using SportsTournament.Application.Common.Outbox;
+﻿using SportsTournament.Application.Common.Outbox.Interfaces;
 
 namespace SportsTournament.UnitTests.Common.Fakes;
 

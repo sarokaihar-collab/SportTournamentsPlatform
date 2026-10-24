@@ -1,4 +1,4 @@
-﻿namespace SportsTournament.Application.Common;
+﻿namespace SportsTournament.Application.Common.Interfaces;
 
 public interface IUnitOfWork
 {

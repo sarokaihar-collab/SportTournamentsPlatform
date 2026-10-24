@@ -1,4 +1,6 @@
-﻿namespace SportsTournament.Application.Tournaments.Queries;
+﻿using SportsTournament.Application.Tournaments.Queries;
+
+namespace SportsTournament.Application.Tournaments.Interfaces;
 
 public interface ITournamentDetailsQuery
 {

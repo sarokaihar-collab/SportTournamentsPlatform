@@ -1,5 +1,8 @@
-﻿using SportsTournament.Application.Tournaments;
+﻿using SportsTournament.Application.Common.Outbox;
+using SportsTournament.Application.Outbox.Messages;
+using SportsTournament.Application.Tournaments;
 using SportsTournament.Application.Tournaments.Commands.OpenTournamentRegistration;
+using SportsTournament.Application.Tournaments.Interfaces;
 using SportsTournament.Domain.Enums;
 using SportsTournament.Domain.Exceptions;
 using SportsTournament.Domain.Tournaments;
@@ -18,14 +21,22 @@ public sealed class OpenTournamentRegistrationHandlerTests
             Tournament = tournament
         };
         var cacheService = new FakeCacheService();
+        var outboxWriter = new FakeOutboxMessageWriter();
+        var unitOfWork = new FakeUnitOfWork();
 
-        var handler = new OpenTournamentRegistrationHandler( repository, cacheService, new FakeOutboxMessageWriter(), new FakeUnitOfWork());
+        var handler = new OpenTournamentRegistrationHandler(repository, cacheService, outboxWriter, unitOfWork);
 
         var result = await handler.HandleAsync(new OpenTournamentRegistrationCommand(tournament.Id), CancellationToken.None);
 
         Assert.True(result);
         Assert.Equal(TournamentStatus.RegistrationOpen, tournament.Status);
-        Assert.True(repository.UpdateCalled);
+
+        Assert.Equal(1, unitOfWork.SaveChangesCallCount);
+
+        var outboxMessage = Assert.Single(outboxWriter.Messages);
+        Assert.Equal(OutboxMessageTypes.TournamentListCacheInvalidationRequested, outboxMessage.MessageType);
+
+        var payload = Assert.IsType<TournamentListCacheInvalidationRequested>(outboxMessage.Payload);
 
         Assert.Equal(2, cacheService.RemovedKeys.Count);
         Assert.Contains(TournamentCacheKeys.List, cacheService.RemovedKeys);
@@ -37,13 +48,14 @@ public sealed class OpenTournamentRegistrationHandlerTests
     {
         var repository = new FakeTournamentRepository();
         var cacheService = new FakeCacheService();
+        var unitOfWork = new FakeUnitOfWork();
 
-        var handler = new OpenTournamentRegistrationHandler(repository, cacheService, new FakeOutboxMessageWriter(), new FakeUnitOfWork());
+        var handler = new OpenTournamentRegistrationHandler(repository, cacheService, new FakeOutboxMessageWriter(), unitOfWork);
 
         var result = await handler.HandleAsync(new OpenTournamentRegistrationCommand(Guid.NewGuid()), CancellationToken.None);
 
         Assert.False(result);
-        Assert.False(repository.UpdateCalled);
+        Assert.Equal(0, unitOfWork.SaveChangesCallCount);
         Assert.Empty(cacheService.RemovedKeys);
     }
 
@@ -59,13 +71,14 @@ public sealed class OpenTournamentRegistrationHandlerTests
         };
 
         var cacheService = new FakeCacheService();
+        var unitOfWork = new FakeUnitOfWork();
 
-        var handler = new OpenTournamentRegistrationHandler(repository, cacheService, new FakeOutboxMessageWriter(), new FakeUnitOfWork());
-
+        var handler = new OpenTournamentRegistrationHandler(repository, cacheService, new FakeOutboxMessageWriter(), unitOfWork);
+        
         await Assert.ThrowsAsync<DomainOperationNotAllowedException>(
             () => handler.HandleAsync(new OpenTournamentRegistrationCommand(tournament.Id), CancellationToken.None));
 
-        Assert.False(repository.UpdateCalled);
+        Assert.Equal(0, unitOfWork.SaveChangesCallCount);
         Assert.Empty(cacheService.RemovedKeys);
     }
 
@@ -84,8 +97,6 @@ public sealed class OpenTournamentRegistrationHandlerTests
     private sealed class FakeTournamentRepository : ITournamentRepository
     {
         public Tournament? Tournament { get; set; }
-
-        public bool UpdateCalled { get; private set; }
 
         public Task<IReadOnlyList<Tournament>> GetAllAsync(CancellationToken cancellationToken)
         {

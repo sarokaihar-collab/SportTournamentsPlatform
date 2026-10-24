@@ -1,5 +1,5 @@
 ﻿using System.Text.Json;
-using SportsTournament.Application.Common.Outbox;
+using SportsTournament.Application.Common.Outbox.Interfaces;
 
 namespace SportsTournament.Infrastructure.Persistence.Outbox;
 

@@ -1,6 +1,6 @@
 ﻿using SportsTournament.Domain.Tournaments;
 
-namespace SportsTournament.Application.Tournaments;
+namespace SportsTournament.Application.Tournaments.Interfaces;
 
 public interface ITournamentRepository
 {

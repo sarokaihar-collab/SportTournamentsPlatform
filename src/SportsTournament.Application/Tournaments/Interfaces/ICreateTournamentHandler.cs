@@ -1,4 +1,6 @@
-﻿namespace SportsTournament.Application.Tournaments.Commands.CreateTournament;
+﻿using SportsTournament.Application.Tournaments.Commands.CreateTournament;
+
+namespace SportsTournament.Application.Tournaments.Interfaces;
 
 public interface ICreateTournamentHandler
 {

@@ -1,5 +1,6 @@
 ﻿using SportsTournament.Application.Tournaments;
 using SportsTournament.Application.Tournaments.Commands.CreateTournament;
+using SportsTournament.Application.Tournaments.Interfaces;
 using SportsTournament.Domain.Tournaments;
 using SportsTournament.UnitTests.Common.Fakes;
 

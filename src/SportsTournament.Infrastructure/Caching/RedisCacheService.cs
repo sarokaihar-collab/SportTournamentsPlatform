@@ -1,7 +1,7 @@
 ﻿using System.Text.Json;
 using Microsoft.Extensions.Caching.Distributed;
 using Microsoft.Extensions.Logging;
-using SportsTournament.Application.Common;
+using SportsTournament.Application.Common.Interfaces;
 using StackExchange.Redis;
 
 namespace SportsTournament.Infrastructure.Caching;
@@ -66,7 +66,7 @@ public sealed class RedisCacheService(IDistributedCache distributedCache, ILogge
         }
     }
 
-    public async Task RemoveAsync(string key, CancellationToken cancellationToken = default)
+    public async Task<bool> RemoveAsync(string key, CancellationToken cancellationToken = default)
     {
         for (var attempt = 1; attempt <= MaxRemoveAttempts; attempt++)
         {
@@ -76,15 +76,26 @@ public sealed class RedisCacheService(IDistributedCache distributedCache, ILogge
             {
                 await distributedCache.RemoveAsync(key, cancellationToken);
 
-                return;
+                return true;
             }
-            catch (RedisException exception) when (attempt < MaxRemoveAttempts)
+            catch (Exception exception) when (exception is RedisException or RedisTimeoutException)
             {
+                if (attempt == MaxRemoveAttempts)
+                {
+                    logger.LogError(
+                        exception,
+                        "Redis removal failed for cache key {CacheKey} after {MaxAttempts} attempts.",
+                        key,
+                        MaxRemoveAttempts);
+
+                    return false;
+                }
+
                 var delay = TimeSpan.FromMilliseconds(InitialRetryDelay.TotalMilliseconds * Math.Pow(2, attempt - 1));
 
                 logger.LogWarning(
                     exception,
-                    "Redis removal failed for cache key {CacheKey} " + "on attempt {Attempt}/{MaxAttempts}. Retrying after {DelayMs} ms.",
+                    "Redis removal failed for cache key {CacheKey} on attempt {Attempt}/{MaxAttempts}. Retrying after {DelayMs} ms.",
                     key,
                     attempt,
                     MaxRemoveAttempts,
@@ -92,15 +103,8 @@ public sealed class RedisCacheService(IDistributedCache distributedCache, ILogge
 
                 await Task.Delay(delay, cancellationToken);
             }
-            catch (RedisException exception)
-            {
-                logger.LogError(exception, 
-                    "Redis removal failed for cache key {CacheKey} " + "after {MaxAttempts} attempts.",
-                    key,
-                    MaxRemoveAttempts);
-
-                return;
-            }
         }
+
+        return false;
     }
 }

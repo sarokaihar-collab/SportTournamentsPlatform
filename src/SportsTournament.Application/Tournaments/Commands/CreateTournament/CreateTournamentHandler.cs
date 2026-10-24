@@ -1,7 +1,10 @@
-﻿using SportsTournament.Application.Common;
+﻿using SportsTournament.Application.Common.Interfaces;
 using SportsTournament.Application.Common.Outbox;
+using SportsTournament.Application.Common.Outbox.Interfaces;
+using SportsTournament.Application.Outbox.Messages;
 using SportsTournament.Application.Tournaments;
 using SportsTournament.Application.Tournaments.Commands.CreateTournament;
+using SportsTournament.Application.Tournaments.Interfaces;
 using SportsTournament.Domain.Tournaments;
 
 public sealed class CreateTournamentHandler(ITournamentRepository tournamentRepository, ICacheService cacheService,
@@ -20,8 +23,8 @@ public sealed class CreateTournamentHandler(ITournamentRepository tournamentRepo
 
         tournamentRepository.Add(tournament);
 
-        outboxMessageWriter.Enqueue(OutboxMessageTypes.TournamentCacheInvalidationRequested,
-            new TournamentCacheInvalidationRequested(InvalidateTournamentList: true, TournamentId: null));
+        outboxMessageWriter.Enqueue(OutboxMessageTypes.TournamentListCacheInvalidationRequested,
+            new TournamentListCacheInvalidationRequested());
 
         await unitOfWork.SaveChangesAsync(cancellationToken);
 

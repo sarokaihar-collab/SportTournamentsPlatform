@@ -1,6 +1,7 @@
 ﻿using Microsoft.Extensions.Options;
-using SportsTournament.Application.Common;
+using SportsTournament.Application.Common.Interfaces;
 using SportsTournament.Application.Tournaments;
+using SportsTournament.Application.Tournaments.Interfaces;
 using SportsTournament.Application.Tournaments.Queries;
 
 public sealed class TournamentDetailsQuery(ITournamentRepository tournamentRepository, 

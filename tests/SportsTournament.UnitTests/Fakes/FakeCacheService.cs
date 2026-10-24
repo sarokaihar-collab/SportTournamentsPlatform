@@ -1,10 +1,12 @@
-﻿using SportsTournament.Application.Common;
+﻿using SportsTournament.Application.Common.Interfaces;
 
 namespace SportsTournament.UnitTests.Common.Fakes;
 
 public sealed class FakeCacheService : ICacheService
 {
     private readonly Dictionary<string, object> _cache = [];
+
+    public HashSet<string> FailedRemovalKeys { get; } = [];
 
     public List<string> RemovedKeys { get; } = [];
 
@@ -35,13 +37,17 @@ public sealed class FakeCacheService : ICacheService
         return Task.CompletedTask;
     }
 
-    public Task RemoveAsync(string key, CancellationToken cancellationToken = default)
+    public Task<bool> RemoveAsync(string key, CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();
-
-        _cache.Remove(key);
         RemovedKeys.Add(key);
 
-        return Task.CompletedTask;
+        if (FailedRemovalKeys.Contains(key))
+        {
+            return Task.FromResult<bool>(false);
+        }
+
+        _cache.Remove(key);
+        return Task.FromResult<bool>(true);
     }
 }

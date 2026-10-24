@@ -1,4 +1,4 @@
-﻿using SportsTournament.Application.Common;
+﻿using SportsTournament.Application.Common.Interfaces;
 
 namespace SportsTournament.UnitTests.Common.Fakes;
 
