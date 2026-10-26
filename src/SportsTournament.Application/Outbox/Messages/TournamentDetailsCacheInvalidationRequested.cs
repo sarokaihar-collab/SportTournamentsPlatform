@@ -1,3 +1,0 @@
-﻿namespace SportsTournament.Application.Tournaments;
-
-public sealed record TournamentDetailsCacheInvalidationRequested(Guid TournamentId);
