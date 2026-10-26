@@ -16,13 +16,9 @@ public static class DependencyInjection
 
         services.AddOptions<OutboxProcessingSettings>()
             .Bind(configuration.GetSection(OutboxProcessingSettings.SectionName))
-            .Validate(settings =>
-                    settings.BatchSize > 0 &&
-                    settings.LockDuration > TimeSpan.Zero &&
-                    settings.InitialRetryDelay > TimeSpan.Zero &&
-                    settings.MaxRetryDelay >= settings.InitialRetryDelay &&
-                    settings.PollingInterval > TimeSpan.Zero,
-                "Invalid Outbox processing settings.")
+            .Validate(settings => settings.BatchSize > 0 && settings.LockDuration > TimeSpan.Zero &&
+                    settings.InitialRetryDelay > TimeSpan.Zero && settings.MaxRetryDelay >= settings.InitialRetryDelay &&
+                    settings.PollingInterval > TimeSpan.Zero, "Invalid Outbox processing settings.")
             .ValidateOnStart();
 
         return services;

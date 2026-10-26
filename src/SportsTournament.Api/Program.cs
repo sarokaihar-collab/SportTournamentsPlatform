@@ -1,3 +1,4 @@
+using SportsTournament.Api.BackgroundServices;
 using SportsTournament.Api.Configuration;
 using SportsTournament.Api.ExceptionHandling;
 using SportsTournament.Application;
@@ -11,6 +12,7 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddApplication();
 builder.Services.AddInfrastructure(builder.Configuration);
 builder.Services.AddApplicationSettings(builder.Configuration);
+builder.Services.AddHostedService<OutboxBackgroundService>();
 
 if (builder.Environment.IsDevelopment())
 {

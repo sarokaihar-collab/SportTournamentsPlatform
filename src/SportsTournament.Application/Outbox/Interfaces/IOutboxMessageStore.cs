@@ -6,6 +6,6 @@ public interface IOutboxMessageStore
         CancellationToken cancellationToken = default);
     Task MarkProcessedAsync(Guid messageId, Guid lockToken, CancellationToken cancellationToken = default);
 
-    Task ScheduleRetryAsync(Guid messageId, Guid lockToken, DateTimeOffset nextAttemptAtUtc, string? lastError,
+    Task ScheduleRetryAsync(Guid messageId, Guid lockToken, TimeSpan retryDelay, string? lastError,
         CancellationToken cancellationToken = default);
 }

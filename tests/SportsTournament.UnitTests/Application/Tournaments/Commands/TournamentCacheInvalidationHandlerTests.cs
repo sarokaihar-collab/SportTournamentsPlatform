@@ -8,8 +8,7 @@ public sealed class TournamentCacheInvalidationHandlerTests
 {
     private readonly FakeCacheService _cacheService = new();
 
-    private TournamentCacheInvalidationHandler CreateSut() =>
-        new(_cacheService);
+    private TournamentCacheInvalidationHandler CreateSut() => new(_cacheService);
 
     [Fact]
     public async Task HandleAsync_WhenListInvalidationRequested_RemovesListKey()
@@ -22,9 +21,7 @@ public sealed class TournamentCacheInvalidationHandlerTests
         await sut.HandleAsync(message);
 
         // Assert
-        Assert.Equal(
-            new[] { TournamentCacheKeys.List },
-            _cacheService.RemovedKeys);
+        Assert.Equal(new[] { TournamentCacheKeys.List }, _cacheService.RemovedKeys);
     }
 
     [Fact]
@@ -32,8 +29,7 @@ public sealed class TournamentCacheInvalidationHandlerTests
     {
         // Arrange
         var tournamentId = Guid.NewGuid();
-        var message = new TournamentDetailsCacheInvalidationRequested(
-            tournamentId);
+        var message = new TournamentDetailsCacheInvalidationRequested(tournamentId);
 
         var sut = CreateSut();
 
@@ -41,9 +37,7 @@ public sealed class TournamentCacheInvalidationHandlerTests
         await sut.HandleAsync(message);
 
         // Assert
-        Assert.Equal(
-            new[] { TournamentCacheKeys.Details(tournamentId) },
-            _cacheService.RemovedKeys);
+        Assert.Equal(new[] { TournamentCacheKeys.Details(tournamentId) }, _cacheService.RemovedKeys);
     }
 
     [Fact]
@@ -56,14 +50,11 @@ public sealed class TournamentCacheInvalidationHandlerTests
         var sut = CreateSut();
 
         // Act
-        var exception = await Assert.ThrowsAsync<InvalidOperationException>(
-            () => sut.HandleAsync(message));
+        var exception = await Assert.ThrowsAsync<InvalidOperationException>(() => sut.HandleAsync(message));
 
         // Assert
         Assert.Contains(TournamentCacheKeys.List, exception.Message);
-        Assert.Equal(
-            new[] { TournamentCacheKeys.List },
-            _cacheService.RemovedKeys);
+        Assert.Equal(new[] { TournamentCacheKeys.List }, _cacheService.RemovedKeys);
     }
 
     [Fact]
@@ -75,34 +66,28 @@ public sealed class TournamentCacheInvalidationHandlerTests
 
         _cacheService.FailedRemovalKeys.Add(detailsKey);
 
-        var message = new TournamentDetailsCacheInvalidationRequested(
-            tournamentId);
+        var message = new TournamentDetailsCacheInvalidationRequested(tournamentId);
 
         var sut = CreateSut();
 
         // Act
-        var exception = await Assert.ThrowsAsync<InvalidOperationException>(
-            () => sut.HandleAsync(message));
+        var exception = await Assert.ThrowsAsync<InvalidOperationException>(() => sut.HandleAsync(message));
 
         // Assert
         Assert.Contains(detailsKey, exception.Message);
-        Assert.Equal(
-            new[] { detailsKey },
-            _cacheService.RemovedKeys);
+        Assert.Equal(new[] { detailsKey }, _cacheService.RemovedKeys);
     }
 
     [Fact]
     public async Task HandleAsync_WhenTournamentIdIsEmpty_ThrowsWithoutRemovingKey()
     {
         // Arrange
-        var message = new TournamentDetailsCacheInvalidationRequested(
-            Guid.Empty);
+        var message = new TournamentDetailsCacheInvalidationRequested(Guid.Empty);
 
         var sut = CreateSut();
 
         // Act
-        await Assert.ThrowsAsync<InvalidOperationException>(
-            () => sut.HandleAsync(message));
+        await Assert.ThrowsAsync<InvalidOperationException>(() => sut.HandleAsync(message));
 
         // Assert
         Assert.Empty(_cacheService.RemovedKeys);

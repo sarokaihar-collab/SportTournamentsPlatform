@@ -19,7 +19,7 @@ public static class DependencyInjection
 
         services.AddScoped<IOutboxMessageDispatcher, OutboxMessageDispatcher>();
         services.AddScoped<TournamentCacheInvalidationHandler>();
-        services.AddScoped<OutboxProcessor>();
+        services.AddScoped<IOutboxProcessor, OutboxProcessor>();
 
         return services;
     }

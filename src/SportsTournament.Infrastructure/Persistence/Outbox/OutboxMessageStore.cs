@@ -83,21 +83,19 @@ public sealed class OutboxMessageStore(PlatformDbContext dbContext) : IOutboxMes
 
     public async Task MarkProcessedAsync(Guid messageId, Guid lockToken, CancellationToken cancellationToken = default)
     {
-        var now = DateTimeOffset.UtcNow;
-
-        var updatedCount = await dbContext.OutboxMessages
-            .Where(message =>
-                message.Id == messageId &&
-                message.LockToken == lockToken &&
-                message.ProcessedAtUtc == null &&
-                message.LockedUntilUtc != null &&
-                message.LockedUntilUtc > now)
-            .ExecuteUpdateAsync(
-                setters => setters
-                    .SetProperty(message => message.ProcessedAtUtc, now)
-                    .SetProperty(message => message.LockedUntilUtc, (DateTimeOffset?)null)
-                    .SetProperty(message => message.LockToken, (Guid?)null)
-                    .SetProperty(message => message.LastError, (string?)null), cancellationToken);
+        var updatedCount = await dbContext.Database
+            .ExecuteSqlInterpolatedAsync($"""
+            UPDATE public.outbox_messages
+            SET processed_at_utc = clock_timestamp(),
+                locked_until_utc = NULL,
+                lock_token = NULL,
+                last_error = NULL
+            WHERE id = {messageId}
+              AND lock_token = {lockToken}
+              AND processed_at_utc IS NULL
+              AND locked_until_utc > clock_timestamp();
+            """,
+                cancellationToken);
 
         if (updatedCount == 0)
         {
@@ -105,26 +103,29 @@ public sealed class OutboxMessageStore(PlatformDbContext dbContext) : IOutboxMes
         }
     }
 
-    public async Task ScheduleRetryAsync(Guid messageId, Guid lockToken, DateTimeOffset nextAttemptAtUtc, string? lastError,
+    public async Task ScheduleRetryAsync(Guid messageId, Guid lockToken, TimeSpan retryDelay, string? lastError,
         CancellationToken cancellationToken = default)
     {
-        var now = DateTimeOffset.UtcNow;
+        if (retryDelay <= TimeSpan.Zero)
+        {
+            throw new ArgumentOutOfRangeException(nameof(retryDelay));
+        }
 
         var storedError = lastError is { Length: > MaxStoredErrorLength } ? lastError[..MaxStoredErrorLength] : lastError;
 
-        var updatedCount = await dbContext.OutboxMessages
-            .Where(message =>
-                message.Id == messageId &&
-                message.LockToken == lockToken &&
-                message.ProcessedAtUtc == null &&
-                message.LockedUntilUtc != null &&
-                message.LockedUntilUtc > now)
-            .ExecuteUpdateAsync(
-                setters => setters
-                    .SetProperty(message => message.NextAttemptAtUtc, nextAttemptAtUtc)
-                    .SetProperty(message => message.LastError, storedError)
-                    .SetProperty(message => message.LockedUntilUtc, (DateTimeOffset?)null)
-                    .SetProperty(message => message.LockToken, (Guid?)null), cancellationToken);
+        var updatedCount = await dbContext.Database
+            .ExecuteSqlInterpolatedAsync($"""
+            UPDATE public.outbox_messages
+            SET next_attempt_at_utc = clock_timestamp() + {retryDelay},
+                last_error = {storedError},
+                locked_until_utc = NULL,
+                lock_token = NULL
+            WHERE id = {messageId}
+              AND lock_token = {lockToken}
+              AND processed_at_utc IS NULL
+              AND locked_until_utc > clock_timestamp();
+            """,
+                cancellationToken);
 
         if (updatedCount == 0)
         {

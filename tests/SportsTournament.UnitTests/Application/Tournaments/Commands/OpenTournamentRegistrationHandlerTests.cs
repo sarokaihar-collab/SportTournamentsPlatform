@@ -33,10 +33,17 @@ public sealed class OpenTournamentRegistrationHandlerTests
 
         Assert.Equal(1, unitOfWork.SaveChangesCallCount);
 
-        var outboxMessage = Assert.Single(outboxWriter.Messages);
-        Assert.Equal(OutboxMessageTypes.TournamentListCacheInvalidationRequested, outboxMessage.MessageType);
+        Assert.Equal(2, outboxWriter.Messages.Count);
 
-        var payload = Assert.IsType<TournamentListCacheInvalidationRequested>(outboxMessage.Payload);
+        var listMessage = Assert.Single(outboxWriter.Messages, message => message.MessageType == OutboxMessageTypes.TournamentListCacheInvalidationRequested);
+
+        Assert.IsType<TournamentListCacheInvalidationRequested>(listMessage.Payload);
+
+        var detailsMessage = Assert.Single(outboxWriter.Messages, message => message.MessageType == OutboxMessageTypes.TournamentDetailsCacheInvalidationRequested);
+
+        var detailsPayload = Assert.IsType<TournamentDetailsCacheInvalidationRequested>(detailsMessage.Payload);
+
+        Assert.Equal(tournament.Id, detailsPayload.TournamentId);
 
         Assert.Equal(2, cacheService.RemovedKeys.Count);
         Assert.Contains(TournamentCacheKeys.List, cacheService.RemovedKeys);

@@ -4,7 +4,7 @@ using Microsoft.Extensions.Options;
 namespace SportsTournament.Application.Common.Outbox;
 
 public sealed class OutboxProcessor(IOutboxMessageStore messageStore, IOutboxMessageDispatcher dispatcher,
-    IOptions<OutboxProcessingSettings> options, ILogger<OutboxProcessor> logger)
+    IOptions<OutboxProcessingSettings> options, ILogger<OutboxProcessor> logger) : IOutboxProcessor
 {
     private static readonly string[] SupportedMessageTypes =
         [
@@ -51,7 +51,7 @@ public sealed class OutboxProcessor(IOutboxMessageStore messageStore, IOutboxMes
 
                 try
                 {
-                    await messageStore.ScheduleRetryAsync(message.Id, message.LockToken, nextAttemptAtUtc, safeError, cancellationToken);
+                    await messageStore.ScheduleRetryAsync(message.Id, message.LockToken, retryDelay, safeError, cancellationToken);
                 }
                 catch (OutboxLeaseLostException leaseException)
                 {

@@ -12,6 +12,11 @@ public sealed class TournamentCacheInvalidationHandler(ICacheService cacheServic
 
     public async Task HandleAsync(TournamentDetailsCacheInvalidationRequested message, CancellationToken cancellationToken = default)
     {
+        if (message.TournamentId == Guid.Empty)
+        {
+            throw new InvalidOperationException("TournamentId cann't be empty.");
+        }
+
         var cacheKey = TournamentCacheKeys.Details(message.TournamentId);
 
         await RemoveRequiredAsync(cacheKey, cancellationToken);
