@@ -1,0 +1,35 @@
+﻿using SportTournaments.Application.Common.Interfaces;
+using SportTournaments.Application.Common.Outbox;
+using SportTournaments.Application.Common.Outbox.Interfaces;
+using SportTournaments.Application.Outbox.Messages;
+using SportTournaments.Application.Tournaments;
+using SportTournaments.Application.Tournaments.Commands.CreateTournament;
+using SportTournaments.Application.Tournaments.Interfaces;
+using SportTournaments.Domain.Tournaments;
+
+public sealed class CreateTournamentHandler(ITournamentRepository tournamentRepository, ICacheService cacheService,
+    IOutboxMessageWriter outboxMessageWriter, IUnitOfWork unitOfWork) : ICreateTournamentHandler
+{
+    public async Task<Guid> HandleAsync(CreateTournamentCommand command, CancellationToken cancellationToken)
+    {
+        var tournament = new Tournament(
+            command.Name,
+            command.OrganizerId,
+            command.RegistrationDeadline,
+            command.StartDate,
+            command.EndDate,
+            command.MaxTeams,
+            command.PlayersOnFieldPerTeam);
+
+        tournamentRepository.Add(tournament);
+
+        outboxMessageWriter.Enqueue(OutboxMessageTypes.TournamentListCacheInvalidationRequested,
+            new TournamentListCacheInvalidationRequested());
+
+        await unitOfWork.SaveChangesAsync(cancellationToken);
+
+        await cacheService.RemoveAsync(TournamentCacheKeys.List, cancellationToken);
+
+        return tournament.Id;
+    }
+}

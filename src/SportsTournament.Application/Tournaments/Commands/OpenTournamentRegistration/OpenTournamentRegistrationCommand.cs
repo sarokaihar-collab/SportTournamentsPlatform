@@ -1,3 +1,0 @@
-﻿namespace SportsTournament.Application.Tournaments.Commands.OpenTournamentRegistration;
-
-public sealed record OpenTournamentRegistrationCommand(Guid TournamentId);
