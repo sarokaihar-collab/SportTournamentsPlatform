@@ -6,6 +6,11 @@ namespace SportTournaments.UnitTests.Common.Outbox;
 
 public sealed class OutboxProcessorTests
 {
+    private static readonly string[] TestMessageTypes =
+    [
+        "test-message.v1"
+    ];
+
     [Fact]
     public async Task ProcessBatchAsync_WhenDispatchSucceeds_MarksMessageProcessed()
     {
@@ -21,7 +26,7 @@ public sealed class OutboxProcessorTests
         var sut = CreateSut(store, dispatcher);
 
         // Act
-        var processedCount = await sut.ProcessBatchAsync();
+        var processedCount = await sut.ProcessBatchAsync(TestMessageTypes);
 
         // Assert
         Assert.Equal(1, processedCount);
@@ -36,9 +41,7 @@ public sealed class OutboxProcessorTests
 
         Assert.Empty(store.RetryCalls);
 
-        Assert.Contains(OutboxMessageTypes.TournamentListCacheInvalidationRequested, store.ClaimedMessageTypes);
-
-        Assert.Contains(OutboxMessageTypes.TournamentDetailsCacheInvalidationRequested, store.ClaimedMessageTypes);
+        Assert.Contains(TestMessageTypes.First(), store.ClaimedMessageTypes);
     }
 
     [Fact]
@@ -61,7 +64,7 @@ public sealed class OutboxProcessorTests
         var sut = CreateSut(store, dispatcher, settings);
 
         // Act
-        var processedCount = await sut.ProcessBatchAsync();
+        var processedCount = await sut.ProcessBatchAsync(TestMessageTypes);
 
         // Assert
         Assert.Equal(1, processedCount);
@@ -96,7 +99,7 @@ public sealed class OutboxProcessorTests
         var sut = CreateSut(store, dispatcher);
 
         // Act
-        var processedCount = await sut.ProcessBatchAsync();
+        var processedCount = await sut.ProcessBatchAsync(TestMessageTypes);
 
         // Assert
         Assert.Equal(1, processedCount);
@@ -125,7 +128,7 @@ public sealed class OutboxProcessorTests
         var sut = CreateSut(store, dispatcher);
 
         // Act
-        var processedCount = await sut.ProcessBatchAsync();
+        var processedCount = await sut.ProcessBatchAsync(TestMessageTypes);
 
         // Assert
         Assert.Equal(1, processedCount);

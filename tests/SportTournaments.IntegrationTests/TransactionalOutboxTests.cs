@@ -66,7 +66,7 @@ public sealed class TransactionalOutboxTests(PostgreSqlFixture fixture)
             .Where(message => message.MessageType == OutboxMessageTypes.TournamentDetailsCacheInvalidationRequested)
             .ToListAsync();
 
-        var matchingMessage = Assert.Single(outboxMessages.Where(message => message.Payload.Contains(tournament.Id.ToString())));
+        var matchingMessage = Assert.Single(outboxMessages, message => message.Payload.Contains(tournament.Id.ToString()));
 
         var persistedPayload = JsonSerializer.Deserialize<TournamentDetailsCacheInvalidationRequested>(
                 matchingMessage.Payload, new JsonSerializerOptions(JsonSerializerDefaults.Web));

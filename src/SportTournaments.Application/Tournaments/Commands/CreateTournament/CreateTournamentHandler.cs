@@ -5,6 +5,7 @@ using SportTournaments.Application.Outbox.Messages;
 using SportTournaments.Application.Tournaments;
 using SportTournaments.Application.Tournaments.Commands.CreateTournament;
 using SportTournaments.Application.Tournaments.Interfaces;
+using SportTournaments.Contracts.Events.Tournaments;
 using SportTournaments.Domain.Tournaments;
 
 public sealed class CreateTournamentHandler(ITournamentRepository tournamentRepository, ICacheService cacheService,
@@ -25,6 +26,15 @@ public sealed class CreateTournamentHandler(ITournamentRepository tournamentRepo
 
         outboxMessageWriter.Enqueue(OutboxMessageTypes.TournamentListCacheInvalidationRequested,
             new TournamentListCacheInvalidationRequested());
+
+        var tournamentCreated = new TournamentCreatedV1(
+           EventId: Guid.NewGuid(),
+           TournamentId: tournament.Id,
+           OrganizerId: tournament.OrganizerId,
+           TournamentName: tournament.Name,
+           OccurredAtUtc: DateTimeOffset.UtcNow);
+
+        outboxMessageWriter.Enqueue(OutboxMessageTypes.TournamentCreated, tournamentCreated);
 
         await unitOfWork.SaveChangesAsync(cancellationToken);
 

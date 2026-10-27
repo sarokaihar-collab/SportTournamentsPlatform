@@ -6,17 +6,25 @@ namespace SportTournaments.Application.Common.Outbox;
 public sealed class OutboxProcessor(IOutboxMessageStore messageStore, IOutboxMessageDispatcher dispatcher,
     IOptions<OutboxProcessingSettings> options, ILogger<OutboxProcessor> logger) : IOutboxProcessor
 {
-    private static readonly string[] SupportedMessageTypes =
-        [
-            OutboxMessageTypes.TournamentListCacheInvalidationRequested,
-            OutboxMessageTypes.TournamentDetailsCacheInvalidationRequested
-        ];
-
-    public async Task<int> ProcessBatchAsync(CancellationToken cancellationToken = default)
+    public async Task<int> ProcessBatchAsync(IReadOnlyCollection<string> messageTypes, CancellationToken cancellationToken = default)
     {
+        ArgumentNullException.ThrowIfNull(messageTypes);
+
+        var supportedMessageTypes = messageTypes.Distinct(StringComparer.Ordinal).ToArray();
+
+        if (supportedMessageTypes.Length == 0)
+        {
+            throw new ArgumentException("At least one message type must be provided.", nameof(messageTypes));
+        }
+
+        if (supportedMessageTypes.Any(string.IsNullOrWhiteSpace))
+        {
+            throw new ArgumentException("Message types cannot contain null or whitespace values.", nameof(messageTypes));
+        }
+
         var settings = options.Value;
 
-        var messages = await messageStore.ClaimBatchAsync(SupportedMessageTypes, settings.BatchSize, settings.LockDuration, cancellationToken);
+        var messages = await messageStore.ClaimBatchAsync(supportedMessageTypes, settings.BatchSize, settings.LockDuration, cancellationToken);
 
         foreach (var message in messages)
         {
@@ -42,8 +50,6 @@ public sealed class OutboxProcessor(IOutboxMessageStore messageStore, IOutboxMes
             catch (Exception exception)
             {
                 var retryDelay = CalculateRetryDelay(message.AttemptCount, settings.InitialRetryDelay, settings.MaxRetryDelay);
-
-                var nextAttemptAtUtc = DateTimeOffset.UtcNow.Add(retryDelay);
 
                 // Persist only the exception type, not an arbitrary exception
                 // message that might contain sensitive implementation details.

@@ -12,7 +12,9 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddApplication();
 builder.Services.AddInfrastructure(builder.Configuration);
 builder.Services.AddApplicationSettings(builder.Configuration);
-builder.Services.AddHostedService<OutboxBackgroundService>();
+
+builder.Services.AddHostedService<RedisOutboxBackgroundService>();
+builder.Services.AddHostedService<RabbitMqOutboxBackgroundService>();
 
 if (builder.Environment.IsDevelopment())
 {

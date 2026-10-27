@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 18
-VisualStudioVersion = 18.11.12306.390 stable
+VisualStudioVersion = 18.11.12306.390
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{827E0CD3-B72D-47B6-A68D-7590B98EB39B}"
 EndProject
@@ -18,6 +18,10 @@ EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SportTournaments.Api", "src\SportTournaments.Api\SportTournaments.Api.csproj", "{F0EE1953-3C75-4930-9C7D-1D27A7EE4ECB}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SportTournaments.Domain", "src\SportTournaments.Domain\SportTournaments.Domain.csproj", "{A23A5B68-5323-40FC-B86D-0A0854F21738}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SportTournaments.Contracts", "src\SportTournaments.Contracts\SportTournaments.Contracts.csproj", "{F2D50747-6D54-440F-9ECF-99DBEDD662E5}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SportTournaments.NotificationService", "src\SportTournaments.NotificationService\SportTournaments.NotificationService.csproj", "{6E75D067-6281-462F-BCF3-1337024A9721}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -101,6 +105,30 @@ Global
 		{A23A5B68-5323-40FC-B86D-0A0854F21738}.Release|x64.Build.0 = Release|Any CPU
 		{A23A5B68-5323-40FC-B86D-0A0854F21738}.Release|x86.ActiveCfg = Release|Any CPU
 		{A23A5B68-5323-40FC-B86D-0A0854F21738}.Release|x86.Build.0 = Release|Any CPU
+		{F2D50747-6D54-440F-9ECF-99DBEDD662E5}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{F2D50747-6D54-440F-9ECF-99DBEDD662E5}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{F2D50747-6D54-440F-9ECF-99DBEDD662E5}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{F2D50747-6D54-440F-9ECF-99DBEDD662E5}.Debug|x64.Build.0 = Debug|Any CPU
+		{F2D50747-6D54-440F-9ECF-99DBEDD662E5}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{F2D50747-6D54-440F-9ECF-99DBEDD662E5}.Debug|x86.Build.0 = Debug|Any CPU
+		{F2D50747-6D54-440F-9ECF-99DBEDD662E5}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{F2D50747-6D54-440F-9ECF-99DBEDD662E5}.Release|Any CPU.Build.0 = Release|Any CPU
+		{F2D50747-6D54-440F-9ECF-99DBEDD662E5}.Release|x64.ActiveCfg = Release|Any CPU
+		{F2D50747-6D54-440F-9ECF-99DBEDD662E5}.Release|x64.Build.0 = Release|Any CPU
+		{F2D50747-6D54-440F-9ECF-99DBEDD662E5}.Release|x86.ActiveCfg = Release|Any CPU
+		{F2D50747-6D54-440F-9ECF-99DBEDD662E5}.Release|x86.Build.0 = Release|Any CPU
+		{6E75D067-6281-462F-BCF3-1337024A9721}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{6E75D067-6281-462F-BCF3-1337024A9721}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{6E75D067-6281-462F-BCF3-1337024A9721}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{6E75D067-6281-462F-BCF3-1337024A9721}.Debug|x64.Build.0 = Debug|Any CPU
+		{6E75D067-6281-462F-BCF3-1337024A9721}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{6E75D067-6281-462F-BCF3-1337024A9721}.Debug|x86.Build.0 = Debug|Any CPU
+		{6E75D067-6281-462F-BCF3-1337024A9721}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{6E75D067-6281-462F-BCF3-1337024A9721}.Release|Any CPU.Build.0 = Release|Any CPU
+		{6E75D067-6281-462F-BCF3-1337024A9721}.Release|x64.ActiveCfg = Release|Any CPU
+		{6E75D067-6281-462F-BCF3-1337024A9721}.Release|x64.Build.0 = Release|Any CPU
+		{6E75D067-6281-462F-BCF3-1337024A9721}.Release|x86.ActiveCfg = Release|Any CPU
+		{6E75D067-6281-462F-BCF3-1337024A9721}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -112,5 +140,10 @@ Global
 		{3B65DA0E-E0CD-463B-8B67-47A63EFBEF42} = {0AB3BF05-4346-4AA6-1389-037BE0695223}
 		{F0EE1953-3C75-4930-9C7D-1D27A7EE4ECB} = {827E0CD3-B72D-47B6-A68D-7590B98EB39B}
 		{A23A5B68-5323-40FC-B86D-0A0854F21738} = {827E0CD3-B72D-47B6-A68D-7590B98EB39B}
+		{F2D50747-6D54-440F-9ECF-99DBEDD662E5} = {827E0CD3-B72D-47B6-A68D-7590B98EB39B}
+		{6E75D067-6281-462F-BCF3-1337024A9721} = {827E0CD3-B72D-47B6-A68D-7590B98EB39B}
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {BA2C2D36-2272-40CA-BC0A-C14EF4DB19D6}
 	EndGlobalSection
 EndGlobal
