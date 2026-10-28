@@ -1,5 +1,6 @@
 ﻿using Microsoft.Extensions.Options;
 using SportTournaments.Application.Common.Interfaces;
+using SportTournaments.Application.Repositories;
 using SportTournaments.Application.Tournaments;
 using SportTournaments.Application.Tournaments.Interfaces;
 using SportTournaments.Application.Tournaments.Queries;

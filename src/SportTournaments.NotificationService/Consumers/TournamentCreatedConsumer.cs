@@ -1,23 +1,53 @@
-﻿using MassTransit;
+﻿using Microsoft.EntityFrameworkCore;
+using Npgsql;
+using MassTransit;
 using SportTournaments.Contracts.Events.Tournaments;
+using SportTournaments.NotificationService.Persistence;
+using SportTournaments.NotificationService.Persistence.Entities;
 
 namespace SportTournaments.NotificationService.Consumers;
 
-public sealed class TournamentCreatedConsumer(ILogger<TournamentCreatedConsumer> logger) : IConsumer<TournamentCreatedV1>
+public sealed class TournamentCreatedConsumer(NotificationDbContext dbContext, ILogger<TournamentCreatedConsumer> logger)
+    : IConsumer<TournamentCreatedV1>
 {
-    public Task Consume(ConsumeContext<TournamentCreatedV1> context)
+    private const string EventIdUniqueIndex = "ux_notifications_event_id";
+
+    public async Task Consume(ConsumeContext<TournamentCreatedV1> context)
     {
         var message = context.Message;
 
-        logger.LogInformation(
-            "Received tournament-created event. " +
-            "EventId: {EventId}, TournamentId: {TournamentId}, " +
-            "OrganizerId: {OrganizerId}, TournamentName: {TournamentName}",
-            message.EventId,
-            message.TournamentId,
-            message.OrganizerId,
-            message.TournamentName);
+        var notification = Notification.Create(
+            eventId: message.EventId,
+            recipientUserId: message.OrganizerId,
+            tournamentId: message.TournamentId,
+            notificationType: "TournamentCreated",
+            title: "Турнир создан",
+            message: $"Турнир «{message.TournamentName}» создан.",
+            eventOccurredAtUtc: message.OccurredAtUtc);
 
-        return Task.CompletedTask;
+        dbContext.Notifications.Add(notification);
+
+        try
+        {
+            await dbContext.SaveChangesAsync(context.CancellationToken);
+        }
+        catch (DbUpdateException exception) when (IsDuplicateEventId(exception))
+        {
+            dbContext.Entry(notification).State = EntityState.Detached;
+
+            logger.LogInformation("Notification for event {EventId} already exists. " + "Duplicate delivery was ignored.", message.EventId);
+            
+            return;
+        }
+
+        logger.LogInformation("Notification {NotificationId} saved for event {EventId} " + "and recipient {RecipientUserId}.",
+            notification.Id, message.EventId, message.OrganizerId);
+    }
+
+    private static bool IsDuplicateEventId(DbUpdateException exception)
+    {
+        return exception.InnerException is PostgresException postgresException
+            && postgresException.SqlState == PostgresErrorCodes.UniqueViolation
+            && postgresException.ConstraintName == EventIdUniqueIndex;
     }
 }

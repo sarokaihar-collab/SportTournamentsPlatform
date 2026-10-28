@@ -8,7 +8,7 @@ public sealed class UserTests
     [Fact]
     public void Constructor_WithValidDisplayName_CreatesUserAndTrimsName()
     {
-        var user = new User("  Alex Smith  ");
+        var user = new User("  Alex Smith  ", "Test@gmail.com");
 
         Assert.NotEqual(Guid.Empty, user.Id);
         Assert.Equal("Alex Smith", user.DisplayName);
@@ -18,10 +18,9 @@ public sealed class UserTests
     [Theory]
     [InlineData("")]
     [InlineData("   ")]
-    public void Constructor_WithEmptyDisplayName_ThrowsArgumentException(
-        string displayName)
+    public void Constructor_WithEmptyDisplayName_ThrowsArgumentException(string displayName)
     {
-        Assert.Throws<DomainValidationException>(() => new User(displayName));
+        Assert.Throws<DomainValidationException>(() => new User(displayName, "Test@gmail.com"));
     }
 
     [Fact]
@@ -29,13 +28,13 @@ public sealed class UserTests
     {
         var displayName = new string('A', 101);
 
-        Assert.Throws<DomainValidationException>(() => new User(displayName));
+        Assert.Throws<DomainValidationException>(() => new User(displayName, "Test@gmail.com"));
     }
 
     [Fact]
     public void Rename_WithValidDisplayName_UpdatesAndTrimsName()
     {
-        var user = new User("Alex Smith");
+        var user = new User("Alex Smith", "Test@gmail.com");
 
         user.Rename("  John Smith  ");
 
@@ -45,7 +44,7 @@ public sealed class UserTests
     [Fact]
     public void Rename_WithEmptyDisplayName_ThrowsArgumentException()
     {
-        var user = new User("Alex Smith");
+        var user = new User("Alex Smith", "Test@gmail.com");
 
         Assert.Throws<DomainValidationException>(() => user.Rename(" "));
     }

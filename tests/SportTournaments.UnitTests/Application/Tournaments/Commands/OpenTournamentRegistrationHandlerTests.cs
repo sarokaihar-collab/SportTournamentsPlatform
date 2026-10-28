@@ -1,8 +1,8 @@
 ﻿using SportTournaments.Application.Common.Outbox;
 using SportTournaments.Application.Outbox.Messages;
+using SportTournaments.Application.Repositories;
 using SportTournaments.Application.Tournaments;
 using SportTournaments.Application.Tournaments.Commands.OpenTournamentRegistration;
-using SportTournaments.Application.Tournaments.Interfaces;
 using SportTournaments.Domain.Enums;
 using SportTournaments.Domain.Exceptions;
 using SportTournaments.Domain.Tournaments;

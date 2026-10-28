@@ -1,8 +1,9 @@
 ﻿using SportTournaments.Application.Common.Outbox;
+using SportTournaments.Application.Repositories;
 using SportTournaments.Application.Tournaments;
 using SportTournaments.Application.Tournaments.Commands.CreateTournament;
-using SportTournaments.Application.Tournaments.Interfaces;
 using SportTournaments.Contracts.Events.Tournaments;
+using SportTournaments.Domain.Common;
 using SportTournaments.Domain.Tournaments;
 using SportTournaments.UnitTests.Common.Fakes;
 
@@ -16,10 +17,11 @@ public sealed class CreateTournamentHandlerTests
         // Arrange
         var command = CreateCommand();
         var repository = new FakeTournamentRepository();
+        var userRepository = new FakeUserRepository();
         var cacheService = new FakeCacheService();
         var outboxWriter = new FakeOutboxMessageWriter();
 
-        var handler = new CreateTournamentHandler(repository, cacheService, outboxWriter, new FakeUnitOfWork());
+        var handler = new CreateTournamentHandler(repository, cacheService, outboxWriter, new FakeUnitOfWork(), userRepository);
 
         // Act
         var createdTournamentId = await handler.HandleAsync(command, CancellationToken.None);
@@ -65,9 +67,11 @@ public sealed class CreateTournamentHandlerTests
             ThrowOnCreate = true
         };
 
+        var userRepository = new FakeUserRepository();
+
         var cacheService = new FakeCacheService();
 
-        var handler = new CreateTournamentHandler(repository, cacheService, new FakeOutboxMessageWriter(), new FakeUnitOfWork());
+        var handler = new CreateTournamentHandler(repository, cacheService, new FakeOutboxMessageWriter(), new FakeUnitOfWork(), userRepository);
 
         // Act
         await Assert.ThrowsAsync<RepositoryFailureException>(() => handler.HandleAsync(command, CancellationToken.None));
@@ -89,6 +93,18 @@ public sealed class CreateTournamentHandlerTests
             new DateOnly(2026, 11, 8),
             8,
             11);
+    }
+
+    private sealed class FakeUserRepository : IUserRepository
+    {
+        private User? _user;
+
+        public Task<User?> GetByIdAsync(Guid id, CancellationToken cancellationToken = default)
+        {
+            var user = _user;
+
+            return Task.FromResult<User?>(user?.Id == id ? user : null);
+        }
     }
 
     private sealed class FakeTournamentRepository : ITournamentRepository

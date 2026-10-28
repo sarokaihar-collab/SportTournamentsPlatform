@@ -5,7 +5,7 @@ using Microsoft.Extensions.DependencyInjection;
 using SportTournaments.Application.Common.Interfaces;
 using SportTournaments.Application.Common.Outbox;
 using SportTournaments.Application.Common.Outbox.Interfaces;
-using SportTournaments.Application.Tournaments.Interfaces;
+using SportTournaments.Application.Repositories;
 using SportTournaments.Infrastructure.Caching;
 using SportTournaments.Infrastructure.Messaging;
 using SportTournaments.Infrastructure.Persistence;
@@ -28,6 +28,8 @@ public static class DependencyInjection
         services.AddDbContext<PlatformDbContext>(options => options.UseNpgsql(connectionString));
 
         services.AddScoped<ITournamentRepository, TournamentRepository>();
+        services.AddScoped<IUserRepository, UserRepository>();
+
         services.AddScoped<IOutboxMessageWriter, OutboxMessageWriter>();
 
         services.AddScoped<IUnitOfWork>(serviceProvider => serviceProvider.GetRequiredService<PlatformDbContext>());

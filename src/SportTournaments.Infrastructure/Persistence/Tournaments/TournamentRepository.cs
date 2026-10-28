@@ -1,5 +1,5 @@
 ﻿using Microsoft.EntityFrameworkCore;
-using SportTournaments.Application.Tournaments.Interfaces;
+using SportTournaments.Application.Repositories;
 using SportTournaments.Domain.Tournaments;
 
 namespace SportTournaments.Infrastructure.Persistence.Tournaments;

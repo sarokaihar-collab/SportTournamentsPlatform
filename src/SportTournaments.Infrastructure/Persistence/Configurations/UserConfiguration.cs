@@ -15,5 +15,7 @@ public sealed class UserConfiguration : IEntityTypeConfiguration<User>
         builder.Property(user => user.Id).HasColumnName("id").ValueGeneratedNever();
         builder.Property(user => user.DisplayName).HasColumnName("display_name").HasMaxLength(100).IsRequired();
         builder.Property(user => user.CreatedAtUtc).HasColumnName("created_at_utc").HasColumnType("timestamp with time zone").IsRequired();
+        builder.Property(user => user.Email).HasColumnName("email").HasMaxLength(254).IsRequired();
+        builder.HasIndex(user => user.Email).IsUnique();
     }
 }
