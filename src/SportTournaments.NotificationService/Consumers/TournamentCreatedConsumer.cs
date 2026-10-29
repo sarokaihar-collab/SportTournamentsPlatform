@@ -1,6 +1,6 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using MassTransit;
+using Microsoft.EntityFrameworkCore;
 using Npgsql;
-using MassTransit;
 using SportTournaments.Contracts.Events.Tournaments;
 using SportTournaments.NotificationService.Persistence;
 using SportTournaments.NotificationService.Persistence.Entities;
@@ -10,44 +10,72 @@ namespace SportTournaments.NotificationService.Consumers;
 public sealed class TournamentCreatedConsumer(NotificationDbContext dbContext, ILogger<TournamentCreatedConsumer> logger)
     : IConsumer<TournamentCreatedV1>
 {
-    private const string EventIdUniqueIndex = "ux_notifications_event_id";
+    private const string NotificationEventIdUniqueIndex = "ux_notifications_event_id";
+
+    private const string EmailDeliveryEventRecipientUniqueIndex = "ux_email_deliveries_event_recipient";
 
     public async Task Consume(ConsumeContext<TournamentCreatedV1> context)
     {
         var message = context.Message;
 
-        var notification = Notification.Create(
+        if (string.IsNullOrWhiteSpace(message.OrganizerEmail))
+        {
+            logger.LogError("Organizer email is missing for event {EventId}.", message.EventId);
+
+            throw new InvalidOperationException($"Organizer email is missing for event {message.EventId}.");
+        }
+
+        const string title = "Турнир создан";
+        var body = $"Турнир «{message.TournamentName}» создан.";
+
+        var notification = new Notification(
             eventId: message.EventId,
             recipientUserId: message.OrganizerId,
             tournamentId: message.TournamentId,
             notificationType: "TournamentCreated",
-            title: "Турнир создан",
-            message: $"Турнир «{message.TournamentName}» создан.",
+            title: title,
+            message: body,
             eventOccurredAtUtc: message.OccurredAtUtc);
 
+        var emailDelivery = EmailDelivery.Create(
+            eventId: message.EventId,
+            recipientUserId: message.OrganizerId,
+            recipientEmail: message.OrganizerEmail,
+            subject: title,
+            body: body);
+
         dbContext.Notifications.Add(notification);
+        dbContext.EmailDeliveries.Add(emailDelivery);
 
         try
         {
+            // Both records are saved through the same DbContext.
             await dbContext.SaveChangesAsync(context.CancellationToken);
         }
-        catch (DbUpdateException exception) when (IsDuplicateEventId(exception))
+        catch (DbUpdateException exception) when (IsDuplicateEvent(exception))
         {
             dbContext.Entry(notification).State = EntityState.Detached;
+            dbContext.Entry(emailDelivery).State = EntityState.Detached;
 
-            logger.LogInformation("Notification for event {EventId} already exists. " + "Duplicate delivery was ignored.", message.EventId);
-            
+            logger.LogInformation("Notification and email delivery for event {EventId} " + "already exist. Duplicate delivery was ignored.",
+                message.EventId);
+
             return;
         }
 
-        logger.LogInformation("Notification {NotificationId} saved for event {EventId} " + "and recipient {RecipientUserId}.",
-            notification.Id, message.EventId, message.OrganizerId);
+        logger.LogInformation(
+            "Notification {NotificationId} and email delivery " + "{EmailDeliveryId} saved for event {EventId}.",
+            notification.Id, emailDelivery.Id, message.EventId);
     }
 
-    private static bool IsDuplicateEventId(DbUpdateException exception)
+    private static bool IsDuplicateEvent(DbUpdateException exception)
     {
-        return exception.InnerException is PostgresException postgresException
-            && postgresException.SqlState == PostgresErrorCodes.UniqueViolation
-            && postgresException.ConstraintName == EventIdUniqueIndex;
+        if (exception.InnerException is not PostgresException postgresException
+            || postgresException.SqlState != PostgresErrorCodes.UniqueViolation)
+        {
+            return false;
+        }
+
+        return postgresException.ConstraintName is NotificationEventIdUniqueIndex or EmailDeliveryEventRecipientUniqueIndex;
     }
 }

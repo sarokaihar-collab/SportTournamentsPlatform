@@ -87,8 +87,7 @@ public sealed class CreateTournamentHandlerTests
         return new CreateTournamentCommand(
             "Test Tournament",
             Guid.NewGuid(),
-            new DateTimeOffset(
-                2026, 11, 6, 18, 0, 0, TimeSpan.Zero),
+            new DateTimeOffset(2026, 11, 6, 18, 0, 0, TimeSpan.Zero),
             new DateOnly(2026, 11, 7),
             new DateOnly(2026, 11, 8),
             8,
@@ -97,13 +96,13 @@ public sealed class CreateTournamentHandlerTests
 
     private sealed class FakeUserRepository : IUserRepository
     {
-        private User? _user;
+        private User? _user = new User("Test User", "Test@gmail.com");
 
         public Task<User?> GetByIdAsync(Guid id, CancellationToken cancellationToken = default)
         {
             var user = _user;
 
-            return Task.FromResult<User?>(user?.Id == id ? user : null);
+            return Task.FromResult<User?>(user);
         }
     }
 

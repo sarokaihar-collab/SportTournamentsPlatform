@@ -5,6 +5,7 @@ using Microsoft.Extensions.DependencyInjection;
 using SportTournaments.Contracts.Events.Tournaments;
 using SportTournaments.NotificationService.Consumers;
 using SportTournaments.NotificationService.Persistence;
+using SportTournaments.NotificationService.Persistence.Entities;
 
 namespace SportTournaments.IntegrationTests.Notifications;
 
@@ -33,7 +34,8 @@ public sealed class TournamentCreatedConsumerTests(NotificationPostgreSqlFixture
             TournamentId: Guid.NewGuid(),
             OrganizerId: Guid.NewGuid(),
             TournamentName: "Integration test tournament",
-            OccurredAtUtc: DateTimeOffset.UtcNow);
+            OccurredAtUtc: DateTimeOffset.UtcNow,
+            OrganizerEmail: "development.user@example.com");
 
         var consumerHarness = harness.GetConsumerHarness<TournamentCreatedConsumer>();
 
@@ -57,6 +59,22 @@ public sealed class TournamentCreatedConsumerTests(NotificationPostgreSqlFixture
         Assert.Equal("Турнир создан", notification.Title);
         Assert.Equal($"Турнир «{message.TournamentName}» создан.", notification.Message);
         Assert.Equal(message.OccurredAtUtc, notification.EventOccurredAtUtc, TimeSpan.FromMilliseconds(1));
+
+        var emailDeliveries = await dbContext.EmailDeliveries
+            .AsNoTracking()
+            .Where(x => x.EventId == message.EventId)
+            .ToListAsync();
+
+        var emailDelivery = Assert.Single(emailDeliveries);
+
+        Assert.Equal(message.EventId, emailDelivery.EventId);
+        Assert.Equal(message.OrganizerId, emailDelivery.RecipientUserId);
+        Assert.Equal("development.user@example.com", emailDelivery.RecipientEmail);
+        Assert.Equal("Турнир создан", emailDelivery.Subject);
+        Assert.Equal($"Турнир «{message.TournamentName}» создан.", emailDelivery.Body);
+        Assert.Equal(EmailDeliveryStatus.Pending, emailDelivery.Status);
+        Assert.Equal(0, emailDelivery.AttemptCount);
+        Assert.Null(emailDelivery.SentAtUtc);
     }
 
     [Fact]
@@ -86,7 +104,8 @@ public sealed class TournamentCreatedConsumerTests(NotificationPostgreSqlFixture
             TournamentId: Guid.NewGuid(),
             OrganizerId: Guid.NewGuid(),
             TournamentName: "Idempotency test tournament",
-            OccurredAtUtc: DateTimeOffset.UtcNow);
+            OccurredAtUtc: DateTimeOffset.UtcNow,
+            OrganizerEmail: "development.user@example.com");
 
         // Act: first delivery
         await harness.Bus.Publish(message);
@@ -154,7 +173,8 @@ public sealed class TournamentCreatedConsumerTests(NotificationPostgreSqlFixture
                 TournamentId: Guid.NewGuid(),
                 OrganizerId: Guid.NewGuid(),
                 TournamentName: "Database failure test",
-                OccurredAtUtc: DateTimeOffset.UtcNow);
+                OccurredAtUtc: DateTimeOffset.UtcNow,
+                OrganizerEmail: "development.user@example.com");
 
             // Act
             await harness.Bus.Publish(message);
