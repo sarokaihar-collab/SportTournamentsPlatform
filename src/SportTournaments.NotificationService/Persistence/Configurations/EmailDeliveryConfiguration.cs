@@ -27,5 +27,7 @@ public sealed class EmailDeliveryConfiguration
         builder.Property(x => x.LastError).HasColumnName("last_error").HasMaxLength(2000);
         builder.HasIndex(x => new { x.EventId, x.RecipientUserId }).IsUnique().HasDatabaseName("ux_email_deliveries_event_recipient");
         builder.HasIndex(x => new { x.Status, x.NextAttemptAtUtc }).HasDatabaseName("ix_email_deliveries_status_next_attempt_at_utc");
+        builder.Property(x => x.LockedUntilUtc).HasColumnName("locked_until_utc").HasColumnType("timestamp with time zone");
+        builder.Property(x => x.LockToken).HasColumnName("lock_token").IsConcurrencyToken();
     }
 }

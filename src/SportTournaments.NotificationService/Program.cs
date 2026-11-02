@@ -3,6 +3,7 @@ using SportTournaments.NotificationService.Configuration;
 using SportTournaments.NotificationService.Email;
 using SportTournaments.NotificationService.Messaging;
 using SportTournaments.NotificationService.Persistence;
+using SportTournaments.NotificationService.Persistence.Repositories;
 
 var builder = Host.CreateApplicationBuilder(args);
 
@@ -18,6 +19,7 @@ if (string.IsNullOrWhiteSpace(connectionString))
 }
 
 builder.Services.AddDbContext<NotificationDbContext>(options => options.UseNpgsql(connectionString));
+builder.Services.AddScoped<IEmailDeliveryRepository, EmailDeliveryRepository>();
 
 builder.Services.AddTransient<IEmailSender, SmtpEmailSender>();
 

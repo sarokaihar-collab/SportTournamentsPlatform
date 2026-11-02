@@ -33,6 +33,10 @@ public sealed class EmailDelivery
 
     public int AttemptCount { get; private set; }
 
+    public DateTimeOffset? LockedUntilUtc { get; private set; }
+
+    public Guid? LockToken { get; private set; }
+
     public DateTimeOffset CreatedAtUtc { get; private set; }
 
     public DateTimeOffset NextAttemptAtUtc { get; private set; }
@@ -92,30 +96,46 @@ public sealed class EmailDelivery
         SentAtUtc = sentAtUtc;
         AttemptCount++;
         LastError = null;
+        ReleaseLease();
     }
 
-    public void MarkFailed(
-        string error,
-        DateTimeOffset nextAttemptAtUtc,
-        int maxAttempts)
+    public void MarkFailed(string error, DateTimeOffset nextAttemptAtUtc, int maxAttempts)
     {
         if (maxAttempts < 1)
             throw new ArgumentOutOfRangeException(nameof(maxAttempts));
 
+        if (nextAttemptAtUtc <= DateTimeOffset.UtcNow)
+            throw new ArgumentOutOfRangeException(nameof(nextAttemptAtUtc));
+
         AttemptCount++;
 
-        var normalizedError = string.IsNullOrWhiteSpace(error)
-            ? "Email delivery failed."
-            : error.Trim();
+        var normalizedError = string.IsNullOrWhiteSpace(error) ? "Email delivery failed." : error.Trim();
 
-        LastError = normalizedError.Length <= MaxErrorLength
-            ? normalizedError
-            : normalizedError[..MaxErrorLength];
+        LastError = normalizedError.Length <= MaxErrorLength ? normalizedError : normalizedError[..MaxErrorLength];
 
-        Status = AttemptCount >= maxAttempts
-            ? EmailDeliveryStatus.DeadLetter
-            : EmailDeliveryStatus.Pending;
+        Status = AttemptCount >= maxAttempts ? EmailDeliveryStatus.DeadLetter : EmailDeliveryStatus.Pending;
 
         NextAttemptAtUtc = nextAttemptAtUtc;
+    }
+
+    public void AcquireLease(Guid lockToken, DateTimeOffset lockedUntilUtc)
+    {
+        if (Status != EmailDeliveryStatus.Pending)
+            throw new InvalidOperationException("Only pending email deliveries can be locked.");
+
+        if (lockToken == Guid.Empty)
+            throw new ArgumentException("Lock token cannot be empty.", nameof(lockToken));
+
+        if (lockedUntilUtc <= DateTimeOffset.UtcNow)
+            throw new ArgumentOutOfRangeException(nameof(lockedUntilUtc));
+
+        LockToken = lockToken;
+        LockedUntilUtc = lockedUntilUtc;
+    }
+
+    public void ReleaseLease()
+    {
+        LockToken = null;
+        LockedUntilUtc = null;
     }
 }

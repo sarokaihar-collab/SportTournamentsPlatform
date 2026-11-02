@@ -3,7 +3,7 @@ using MassTransit.Testing;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using SportTournaments.Contracts.Events.Tournaments;
-using SportTournaments.NotificationService.Consumers;
+using SportTournaments.NotificationService.Messaging.Consumers;
 using SportTournaments.NotificationService.Persistence;
 using SportTournaments.NotificationService.Persistence.Entities;
 

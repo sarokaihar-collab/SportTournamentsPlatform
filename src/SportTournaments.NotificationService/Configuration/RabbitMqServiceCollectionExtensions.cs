@@ -1,5 +1,5 @@
 ﻿using MassTransit;
-using SportTournaments.NotificationService.Consumers;
+using SportTournaments.NotificationService.Messaging.Consumers;
 
 namespace SportTournaments.NotificationService.Messaging;
 

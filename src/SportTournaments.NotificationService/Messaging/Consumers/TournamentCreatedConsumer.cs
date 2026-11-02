@@ -5,7 +5,7 @@ using SportTournaments.Contracts.Events.Tournaments;
 using SportTournaments.NotificationService.Persistence;
 using SportTournaments.NotificationService.Persistence.Entities;
 
-namespace SportTournaments.NotificationService.Consumers;
+namespace SportTournaments.NotificationService.Messaging.Consumers;
 
 public sealed class TournamentCreatedConsumer(NotificationDbContext dbContext, ILogger<TournamentCreatedConsumer> logger)
     : IConsumer<TournamentCreatedV1>

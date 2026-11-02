@@ -50,6 +50,15 @@ namespace SportTournaments.NotificationService.Persistence.Migrations
                         .HasColumnType("character varying(2000)")
                         .HasColumnName("last_error");
 
+                    b.Property<Guid?>("LockToken")
+                        .IsConcurrencyToken()
+                        .HasColumnType("uuid")
+                        .HasColumnName("lock_token");
+
+                    b.Property<DateTimeOffset?>("LockedUntilUtc")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("locked_until_utc");
+
                     b.Property<DateTimeOffset>("NextAttemptAtUtc")
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("next_attempt_at_utc");
