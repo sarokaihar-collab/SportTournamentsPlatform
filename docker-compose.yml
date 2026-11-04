@@ -61,6 +61,30 @@ services:
       interval: 10s
       timeout: 5s
       retries: 10
+      
+  keycloak:
+    image: quay.io/keycloak/keycloak:26.8.1
+    container_name: sports-tournament-keycloak
+    restart: unless-stopped
+
+    command: start-dev
+
+    environment:
+      KC_BOOTSTRAP_ADMIN_USERNAME: ${KEYCLOAK_ADMIN_USERNAME:?Add KEYCLOAK_ADMIN_USERNAME to .env}
+      KC_BOOTSTRAP_ADMIN_PASSWORD: ${KEYCLOAK_ADMIN_PASSWORD:?Add KEYCLOAK_ADMIN_PASSWORD to .env}
+
+      KC_DB: postgres
+      KC_DB_URL_HOST: postgres
+      KC_DB_URL_DATABASE: keycloak
+      KC_DB_USERNAME: ${KEYCLOAK_DB_USER:?Add KEYCLOAK_DB_USER to .env}
+      KC_DB_PASSWORD: ${KEYCLOAK_DB_PASSWORD:?Add KEYCLOAK_DB_PASSWORD to .env}
+
+    ports:
+      - "127.0.0.1:8080:8080"
+
+    depends_on:
+      postgres:
+        condition: service_healthy
 
 volumes:
   postgres_data:
