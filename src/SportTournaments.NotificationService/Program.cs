@@ -1,4 +1,5 @@
 using Microsoft.EntityFrameworkCore;
+using SportTournaments.NotificationService.BackgroundServices;
 using SportTournaments.NotificationService.Configuration;
 using SportTournaments.NotificationService.Email;
 using SportTournaments.NotificationService.Messaging;
@@ -22,6 +23,8 @@ builder.Services.AddDbContext<NotificationDbContext>(options => options.UseNpgsq
 builder.Services.AddScoped<IEmailDeliveryRepository, EmailDeliveryRepository>();
 
 builder.Services.AddTransient<IEmailSender, SmtpEmailSender>();
+
+builder.Services.AddHostedService<EmailDeliveryWorker>();
 
 var host = builder.Build();
 

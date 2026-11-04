@@ -20,7 +20,7 @@ public sealed class NotificationPostgreSqlFixture : IAsyncLifetime
 
         if (string.IsNullOrWhiteSpace(connectionString))
         {
-            throw new InvalidOperationException("Environment variable " + "'TestConnectionString' " + "is not configured.");
+            throw new InvalidOperationException($"Environment variable '{TestConnectionString}' is not configured.");
         }
 
         var connectionStringBuilder = new NpgsqlConnectionStringBuilder(connectionString);
@@ -57,6 +57,7 @@ public sealed class NotificationPostgreSqlFixture : IAsyncLifetime
     {
         await using var dbContext = CreateDbContext();
 
+        await dbContext.EmailDeliveries.ExecuteDeleteAsync();
         await dbContext.Notifications.ExecuteDeleteAsync();
     }
 }
