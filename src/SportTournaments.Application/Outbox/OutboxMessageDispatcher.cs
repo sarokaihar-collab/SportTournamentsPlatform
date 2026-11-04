@@ -1,10 +1,12 @@
 ﻿using SportTournaments.Application.Outbox.Messages;
 using SportTournaments.Application.Tournaments;
+using SportTournaments.Contracts.Events.Tournaments;
 using System.Text.Json;
 
 namespace SportTournaments.Application.Common.Outbox;
 
-public sealed class OutboxMessageDispatcher(TournamentCacheInvalidationHandler cacheInvalidationHandler) : IOutboxMessageDispatcher
+public sealed class OutboxMessageDispatcher(TournamentCacheInvalidationHandler cacheInvalidationHandler,
+    IIntegrationEventPublisher integrationEventPublisher) : IOutboxMessageDispatcher
 {
     private static readonly JsonSerializerOptions SerializerOptions = new(JsonSerializerDefaults.Web);
 
@@ -26,6 +28,15 @@ public sealed class OutboxMessageDispatcher(TournamentCacheInvalidationHandler c
                     var message = DeserializeRequired<TournamentDetailsCacheInvalidationRequested>(payload);
 
                     await cacheInvalidationHandler.HandleAsync(message, cancellationToken);
+
+                    break;
+                }
+
+            case OutboxMessageTypes.TournamentCreated:
+                {
+                    var message = DeserializeRequired<TournamentCreatedV1>(payload);
+
+                    await integrationEventPublisher.PublishAsync(message, cancellationToken);
 
                     break;
                 }

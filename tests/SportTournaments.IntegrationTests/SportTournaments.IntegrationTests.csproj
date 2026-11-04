@@ -5,10 +5,12 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
     <IsPackable>false</IsPackable>
+    <UserSecretsId>7fa5186a-6b31-44de-a79b-f63d2b274637</UserSecretsId>
   </PropertyGroup>
 
   <ItemGroup>
     <PackageReference Include="coverlet.collector" Version="6.0.4" />
+    <PackageReference Include="MassTransit.TestFramework" Version="8.5.12" />
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.14.1" />
     <PackageReference Include="xunit" Version="2.9.3" />
     <PackageReference Include="xunit.runner.visualstudio" Version="3.1.4" />
@@ -20,6 +22,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\src\SportTournaments.Api\SportTournaments.Api.csproj" />
+    <ProjectReference Include="..\..\src\SportTournaments.NotificationService\SportTournaments.NotificationService.csproj" />
   </ItemGroup>
 
 </Project>

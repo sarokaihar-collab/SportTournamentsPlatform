@@ -2,5 +2,5 @@
 
 public interface IOutboxProcessor
 {
-    Task<int> ProcessBatchAsync(CancellationToken cancellationToken = default);
+    Task<int> ProcessBatchAsync(IReadOnlyCollection<string> messageTypes, CancellationToken cancellationToken = default);
 }

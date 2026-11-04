@@ -5,6 +5,7 @@ using SportTournaments.Application.Common.Outbox.Interfaces;
 using SportTournaments.Application.Tournaments;
 using SportTournaments.Application.Tournaments.Commands.OpenTournamentRegistration;
 using SportTournaments.Application.Tournaments.Interfaces;
+using SportTournaments.Application.Repositories;
 
 public sealed class OpenTournamentRegistrationHandler(ITournamentRepository tournamentRepository,
     ICacheService cacheService, IOutboxMessageWriter outboxMessageWriter, IUnitOfWork unitOfWork) : IOpenTournamentRegistrationHandler

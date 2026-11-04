@@ -3,9 +3,15 @@ using SportTournaments.Application.Common.Outbox;
 
 namespace SportTournaments.Api.BackgroundServices;
 
-public sealed class OutboxBackgroundService(IServiceScopeFactory scopeFactory, IOptions<OutboxProcessingSettings> options,
-    ILogger<OutboxBackgroundService> logger) : BackgroundService
+public sealed class RedisOutboxBackgroundService(IServiceScopeFactory scopeFactory, IOptions<OutboxProcessingSettings> options,
+    ILogger<RedisOutboxBackgroundService> logger) : BackgroundService
 {
+    private static readonly string[] SupportedMessageTypes =
+    [
+        OutboxMessageTypes.TournamentListCacheInvalidationRequested,
+        OutboxMessageTypes.TournamentDetailsCacheInvalidationRequested
+    ];
+
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
         var settings = options.Value;
@@ -23,7 +29,7 @@ public sealed class OutboxBackgroundService(IServiceScopeFactory scopeFactory, I
                 using (var scope = scopeFactory.CreateScope())
                 {
                     var processor = scope.ServiceProvider.GetRequiredService<IOutboxProcessor>();
-                    claimedCount = await processor.ProcessBatchAsync(stoppingToken);
+                    claimedCount = await processor.ProcessBatchAsync(SupportedMessageTypes, stoppingToken);
                 }
 
                 // The scope is disposed before waiting for the next poll.
