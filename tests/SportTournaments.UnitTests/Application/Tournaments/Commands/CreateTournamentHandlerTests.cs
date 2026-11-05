@@ -98,6 +98,11 @@ public sealed class CreateTournamentHandlerTests
     {
         private User? _user = new User("Test User", "Test@gmail.com");
 
+        public Task<User?> GetByExternalIdentityAsync(string issuer, string subject, CancellationToken cancellationToken = default)
+        {
+            throw new NotImplementedException();
+        }
+
         public Task<User?> GetByIdAsync(Guid id, CancellationToken cancellationToken = default)
         {
             var user = _user;

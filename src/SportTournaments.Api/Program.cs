@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using SportTournaments.Api.BackgroundServices;
 using SportTournaments.Api.Configuration;
 using SportTournaments.Api.ExceptionHandling;
@@ -35,28 +36,42 @@ builder.Services.AddSwaggerGen();
 builder.Services.AddExceptionHandler<ApiExceptionHandler>();
 builder.Services.AddProblemDetails();
 
+var authenticationSection = builder.Configuration.GetSection("Authentication");
+var authority = authenticationSection["Authority"] ?? throw new InvalidOperationException("Authentication:Authority is not configured.");
+var audience = authenticationSection["Audience"] ?? throw new InvalidOperationException( "Authentication:Audience is not configured.");
+
+builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+    .AddJwtBearer(options =>
+    {
+        options.Authority = authority;
+        options.Audience = audience;
+
+        // Local Keycloak uses HTTP.
+        // In other environments HTTPS metadata is required.
+        options.RequireHttpsMetadata = !builder.Environment.IsDevelopment();
+    });
+
+builder.Services.AddAuthorization();
+
 var app = builder.Build();
 
 app.UseExceptionHandler();
 app.UseStatusCodePages();
 
-// Configure the HTTP request pipeline.
+// Development tools
 if (app.Environment.IsDevelopment())
 {
     app.MapOpenApi();
+    app.UseSwagger();
+    app.UseSwaggerUI();
 }
 
 app.UseHttpsRedirection();
 
+app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllers();
-
-if (app.Environment.IsDevelopment())
-{
-    app.UseSwagger();
-    app.UseSwaggerUI();
-}
 
 app.MapGet(
     "/health/database",

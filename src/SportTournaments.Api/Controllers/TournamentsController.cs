@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using SportTournaments.Api.Contracts.Tournaments;
 using SportTournaments.Application.Common;
 using SportTournaments.Application.Tournaments.Commands.CreateTournament;
@@ -22,9 +23,11 @@ public sealed class TournamentsController(
     [ProducesResponseType(StatusCodes.Status201Created)]
     public async Task<IActionResult> Create([FromBody] CreateTournamentRequest request, CancellationToken cancellationToken)
     {
+        var userId = await currentUserService.GetUserAsync(cancellationToken);
+
         var command = new CreateTournamentCommand(
             request.Name,
-            currentUserService.GetUser(),
+            userId,
             request.RegistrationDeadline!.Value,
             request.StartDate!.Value,
             request.EndDate!.Value,
@@ -37,6 +40,7 @@ public sealed class TournamentsController(
     }
 
     [HttpGet]
+    [Authorize]
     [ProducesResponseType(typeof(IReadOnlyList<TournamentListItem>), 200)]
     public async Task<ActionResult<IReadOnlyList<TournamentListItem>>> Get(CancellationToken cancellationToken)
     {

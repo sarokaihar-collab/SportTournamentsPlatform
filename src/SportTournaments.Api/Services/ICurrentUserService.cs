@@ -2,5 +2,5 @@
 
 public interface ICurrentUserService
 {
-    Guid GetUser();
+    Task<Guid> GetUserAsync(CancellationToken cancellationToken = default);
 }

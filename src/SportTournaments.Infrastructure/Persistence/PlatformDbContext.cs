@@ -18,6 +18,8 @@ public sealed class PlatformDbContext : DbContext, IUnitOfWork
 
     public DbSet<User> Users => Set<User>();
 
+    public DbSet<UserIdentity> UserIdentities => Set<UserIdentity>();
+
     public DbSet<Team> Teams => Set<Team>();
 
     public DbSet<TeamManagerAssignment> TeamManagerAssignments => Set<TeamManagerAssignment>();
