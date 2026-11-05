@@ -1,4 +1,5 @@
 ﻿using SportTournaments.Application.Common;
+using SportTournaments.Domain.Common;
 
 public sealed class DevelopmentCurrentUserService : ICurrentUserService
 {
@@ -6,6 +7,6 @@ public sealed class DevelopmentCurrentUserService : ICurrentUserService
 
     public Task<Guid> GetUserAsync(CancellationToken cancellationToken = default)
     {
-        return new ValueTask<Guid>();
+        return Task.FromResult(MockUserId); ;
     }
 }
